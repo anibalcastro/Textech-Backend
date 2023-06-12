@@ -119,21 +119,21 @@ class ClientesController extends Controller
      * Función que retorna la data del cliente.
      * Se busca cliente por medio de un Id
      */
-    public function clienteEspecifico($id)
+    public function obtenerCliente($id)
     {
         try {
-            $cliente = Clientes::find($id); //Cliente buscado por el id
+            $cliente = Clientes::find($id)->first(); // Buscar el cliente por su ID
 
             if ($cliente) {
-                //Respuesta con la data del cliente.
+                // Retornar los datos del cliente
                 return response()->json([
                     'data' => $cliente,
-                    'mensaje' => 'Encontrado con éxito'
+                    'mensaje' => 'Cliente encontrado exitosamente'
                 ], 200);
             } else {
-                //Respuesta si no encuentra al cliente.
+                // Retornar mensaje de cliente no encontrado
                 return response()->json([
-                    'mensaje' => 'No se encuentra'
+                    'mensaje' => 'Cliente no encontrado'
                 ], 404);
             }
         } catch (\Exception $e) {
@@ -143,6 +143,7 @@ class ClientesController extends Controller
             ], 500);
         }
     }
+
 
 
     /**

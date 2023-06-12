@@ -2,8 +2,8 @@
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
-use App\Http\Controllers\Api\V1\ClientesController as ClientesV1;
-use App\Http\Controllers\Api\V1\MedicionesController as MedicionesV1;
+use App\Http\Controllers\Api\V1\ClientesController;
+use App\Http\Controllers\Api\V1\MedicionesController;
 
 use function Ramsey\Uuid\v1;
 
@@ -22,11 +22,17 @@ Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
     return $request->user();
 });
 
-Route::apiResource('v1/clientes', ClientesV1::class)->only((['index', 'show', 'destroy']))->middleware('auth:sanctum');
-Route::post('v1/clientes/registrar', ClientesV1::class, 'registrarCliente')->middleware('auth:sanctum');
-Route::post('v1/clientes/modificar', ClientesV1::class, 'modificarCliente')->middleware('auth:sanctum');
-Route::get('v1/clientes/{id}', ClientesV1::class, 'clienteEspecifico')->middleware('auth:sanctum');
+Route::apiResource('v1/clientes', ClientesController::class)->only((['index', 'show', 'destroy']))->middleware('auth:sanctum');
+
+//Ruta para registrar un cliente
+Route::post('v1/clientes/registrar', [App\Http\Controllers\Api\V1\ClientesController::class, 'registrarCliente'])->middleware('auth:sanctum');
+
+//Ruta para modificar un cliente
+Route::post('v1/clientes/modificar', [App\Http\Controllers\Api\V1\ClientesController::class, 'modificarCliente'])->middleware('auth:sanctum');
+
+//Ruta para obtener un cliente especifico.
+Route::post('v1/clientes/{id}', [App\Http\Controllers\Api\V1\ClientesController::class, 'obtenerCliente'])->middleware('auth:sanctum');
 
 
-Route::apiResource('v1/mediciones', MedicionesV1::class)->only((['index', 'show', 'destroy']))->middleware('auth:sanctum');
+Route::apiResource('v1/mediciones', MedicionesController::class)->only((['index', 'show', 'destroy']))->middleware('auth:sanctum');
 Route::post('v1/login', [App\Http\Controllers\Api\V1\LoginController::class, 'login']);
