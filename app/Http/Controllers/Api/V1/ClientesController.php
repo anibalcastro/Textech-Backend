@@ -79,40 +79,32 @@ class ClientesController extends Controller
      * Funcion creada para modificar clientes, se maneja por medio del metodo post.
      * Se recibe un id, en este caso será el id del cliente y tambien se recibe la información que desea modificar.
      */
-    public function modificarCliente(Request $request)
+    public function modificarCliente(Request $request, $id)
     {
-        $this->validateData($request);
+        try {
+            $this->validateData($request);
+            $cliente = Clientes::find($id); //Cliente
 
-        $id_cliente = $request->id; //Id del cliente
+            if ($cliente) {
+                $cliente->update($request->all());
+                return response()->json(
+                    [
+                        'data' => $cliente,
+                        'message' => 'Cliente modificado con éxito'
+                    ],
+                    200
+                );
+            } else {
+                return response()->json(['message' => 'Cliente no encontrado'], 404);
+            }
+        } catch (\Exception $ex) {
+            //throw $th;
+            return response()->json([
+                'Mensaje' => 'Error, hay datos nulos'
+            ],500);
 
-        $cliente = Clientes::find($id_cliente); //Cliente
-
-        $nNombre = $request->input('nombre', $cliente->nombre);
-        $nApellido1 = $request->input('apellido1', $cliente->apellido1);
-        $nApellido2 = $request->input('apellido2', $cliente->apellido2);
-        $nCedula = $request->input('cedula', $cliente->cedula);
-        $nTelefono = $request->input('telefono', $cliente->telefono);
-        $nEmpresa = $request->input('empresa', $cliente->empresa);
-        $nDepartamento = $request->input('empresa', $cliente->empresa);
-        $nComentarios = $request->input('comentarios', $cliente->comentarios);
-
-        if ($cliente) {
-            $cliente->nombre = $nNombre;
-            $cliente->apellido1 = $nApellido1;
-            $cliente->apellido2 = $nApellido2;
-            $cliente->cedula = $nCedula;
-            $cliente->telefono = $nTelefono;
-            $cliente->empresa = $nEmpresa;
-            $cliente->departamento = $nDepartamento;
-            $cliente->comentarios = $nComentarios;
-
-
-            $cliente->save(); //Guardar los cambios
-
-            return response()->json(['message' => 'Cliente modificado con éxito'], 200);
-        } else {
-            return response()->json(['message' => 'Cliente no encontrado'], 404);
         }
+
     }
 
     /**

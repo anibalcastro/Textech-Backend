@@ -17,7 +17,7 @@ class MedicionesFactory extends Factory
     public function definition(): array
     {
         return [
-            'id_cliente' => rand(1,5),
+            'id_cliente' => 1,
             'articulo' => 'Gabacha',
             'espalda_superior' => 40.0,
             'talle_espalda_superior'=> 38.0,

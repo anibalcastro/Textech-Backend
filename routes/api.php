@@ -22,17 +22,21 @@ Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
     return $request->user();
 });
 
+/***************** */
+//Rutas de clientes
 Route::apiResource('v1/clientes', ClientesController::class)->only((['index', 'show', 'destroy']))->middleware('auth:sanctum');
-
 //Ruta para registrar un cliente
 Route::post('v1/clientes/registrar', [App\Http\Controllers\Api\V1\ClientesController::class, 'registrarCliente'])->middleware('auth:sanctum');
-
 //Ruta para modificar un cliente
-Route::post('v1/clientes/modificar', [App\Http\Controllers\Api\V1\ClientesController::class, 'modificarCliente'])->middleware('auth:sanctum');
-
+Route::post('v1/clientes/editar/{id}', [App\Http\Controllers\Api\V1\ClientesController::class, 'modificarCliente'])->middleware('auth:sanctum');
 //Ruta para obtener un cliente especifico.
 Route::post('v1/clientes/{id}', [App\Http\Controllers\Api\V1\ClientesController::class, 'obtenerCliente'])->middleware('auth:sanctum');
+/***************** */
 
-
+//*** */
+//Ruta de mediciones
 Route::apiResource('v1/mediciones', MedicionesController::class)->only((['index', 'show', 'destroy']))->middleware('auth:sanctum');
 Route::post('v1/login', [App\Http\Controllers\Api\V1\LoginController::class, 'login']);
+
+/*** */
+//Ruta de usuarios
