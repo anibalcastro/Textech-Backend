@@ -50,27 +50,15 @@ class ClientesController extends Controller
         //Validación de los datos.
         $this->validateData($request);
 
-        //Array de los datos
-        $data = [
-            'nombre' => $request->nombre,
-            'apellido1' => $request->apellido1,
-            'apellido2' => $request->apellido2,
-            'cedula' => $request->cedula,
-            'telefono' => $request->telefono,
-            'empresa' => $request->empresa,
-            'departamento' => $request->departamento,
-            'comentarios' => $request->comentarios
-        ];
-
         //Se crea el nuevo cliente
-        $registro = Clientes::create($data);
+        $registro = Clientes::create($request->all());
 
         //Se almacena en la base de datos
         $registro->save();
 
         //Retorna una respuesta positiva.
         return response()->json([
-            'data' => $data,
+            'data' => $request->all(),
             'mensaje' => 'Cliente creado con exito'
         ], 200);
     }

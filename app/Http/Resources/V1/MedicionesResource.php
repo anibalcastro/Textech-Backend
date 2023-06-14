@@ -15,13 +15,15 @@ class MedicionesResource extends JsonResource
     public function toArray(Request $request): array
     {
         return [
-            'id_nombre' => $this->id_nombre,
+            'id' => $this->id,
+            'id_cliente' => $this->id_cliente,
             'articulo' => $this->articulo,
             'largo_inferior'=> $this->largo_inferior,
             'cintura_inferior' => $this->cintura_inferior,
             'cadera_inferior' => $this->cadera_inferior,
             'pierna_inferior' => $this->pierna_inferior,
             'rodilla_inferior' => $this->rodilla_inferior,
+            'ruedo_inferior' => $this->ruedo_inferior,
             'tiro_inferior' => $this->tiro_inferior,
             'espalda_superior' => $this->espalda_superior,
             'talle_espalda_superior' => $this->talle_espalda_superior,
@@ -35,10 +37,6 @@ class MedicionesResource extends JsonResource
             'alto_pinza_superior' => $this->alto_pinza_superior,
             'fecha' => $this->fecha,
             'observaciones' => $this->observaciones,
-            'ruedo_inferior' => $this->ruedo_inferior,
-            'ruedo_inferior' => $this->ruedo_inferior,
-            'ruedo_inferior' => $this->ruedo_inferior,
-
         ];
     }
 }

@@ -15,6 +15,7 @@ return new class extends Migration
             $table->id();
             $table->unsignedBigInteger('id_cliente');
             $table->string('articulo',60);
+            $table->decimal('largo_inferior',10,2)->default(0);
             $table->decimal('cintura_inferior',10,2)->default(0);
             $table->decimal('cadera_inferior',10,2)->default(0);
             $table->decimal('pierna_inferior',10,2)->default(0);
