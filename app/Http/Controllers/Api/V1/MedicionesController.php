@@ -7,6 +7,8 @@ use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\Validator;
 use App\Http\Resources\V1\MedicionesResource;
+use Illuminate\Support\Facades\Storage;
+
 
 class MedicionesController extends Controller
 {
@@ -40,46 +42,75 @@ class MedicionesController extends Controller
     }
 
     /**
-     * Crea medidas a un usuario especifico
+     * Registra medidas en la base de datos, de un cliente especifico.
      */
     public function registrarMedida(Request $request)
     {
         try {
-            //code...
+            //Valida los datos del request
             $this->validateData($request);
-            $nRegistro = Mediciones::create($request->all());
 
-            $nRegistro->save();
+            //Obtenemos los articulos del cliente
+            $articulosCliente = Mediciones::where('id_cliente', $request->id_cliente)->pluck('articulo');
 
-            return response()->json(
-                [
-                    'data' => $request->all(),
-                    'mensaje' => 'Registro creado con éxito'
-                ]
-            );
+            //Validamos si lo que el usuario quiere ingresar exista en el arreglo.
+            if (in_array($request->articulo, $articulosCliente->toArray())){
+
+                //Si es asi, retornamos una respuesta
+                return response()->json([
+                    'mensaje' => "Error, ya existen medidas al cliente del articulo " . $request->articulo,
+                ], 200);
+            }
+            else{
+                //Creamos el registro
+                $nRegistro = Mediciones::create($request->all());
+
+                //Guardamos en la base de datos.
+                $nRegistro->save();
+
+                //Retornamos una respuesta.
+                return response()->json(
+                    [
+                        'data' => $request->all(),
+                        'mensaje' => 'Registro creado con éxito'
+                    ]
+                );
+            }
         } catch (\Exception $e) {
             //throw $th;
             return response()->json([
+                'error' => $e,
                 'mensaje'=>'Error, hay datos nulos'
             ]);
         }
     }
 
-    public function modifcarMedida(Request $request, $id)
+    /**
+     * Modifica una medida especifica, por medio del identificador de la medida.
+     */
+    public function modificarMedida(Request $request, $id)
     {
         try {
-            //code...
+            //Valida la medida
             $this->validateData($request);
+
+            //Se almacena el resultado, se busca en la base de datos la informacion que tenga el identificador facilitado.
             $medida = Mediciones::find($id);
 
+            //Valida si existe la medida
             if ($medida) {
-                $medida->update($request->all());
 
+                // Modifica la medida exceptuando el id_cliente y fecha.
+                $medida->update($request->except('id_cliente', 'fecha'));
+
+                // Retorna una respuesta
                 return response()->json([
                     'data' => $medida,
                     'mensaje' => 'Medición modificada con éxito'
                 ], 200);
             } else {
+
+                //Medicion no encontrada.
                 return response()->json([
                     'mensaje' => 'Medición no encontrada'
                 ], 404);
@@ -87,18 +118,75 @@ class MedicionesController extends Controller
         } catch (\Exception $e) {
             //throw $th;
             return response()->json([
-                'Mensaje' => 'Error, hay datos nulos'
+                'error' => $e,
+                'mensaje' => 'Error, hay datos nulos'
             ], 500);
         }
     }
 
+    /**
+     *
+     * Retorna informacion de todas las mediciones de un cliente especifico
+     * {$id_cliente} => Identificador primario del cliente.
+     *
+     */
     public function retornarMedicionesCliente($id_cliente){
+
+        //Resultado de la consulta donde id_cliente es igual al parametro.
         $resultado = Mediciones::where('id_cliente', $id_cliente)->get();
 
+        //Valida si el resultado es vacio
+        if(empty($resultado)){
+
+            //Retorna una respuesta
+            return response()->json([
+                'mensaje' => 'No se encontró ningun usuario'
+            ],404);
+
+        }
+
+        // Retorna la informacion del cliente con todas las medidas
         return response()->json([
             'data'=> $resultado,
-            'Mensaje' => 'Mediciones del cliente'
+            'mensaje' => 'Mediciones del cliente'
         ],200);
+
+    }
+
+    public function almacenarArchivo(Request $request, $id_medida){
+
+        $this->validarArchivo($request);
+
+
+        if ($request->hasFile('archivo')) {
+            $path = $request->file('archivo')->store('carpeta_destino');
+
+
+            //Almacenar el path y la identificación de las mediciones.
+            return response()->json([
+                'data' => $path,
+                'mensajes' => 'Se ha almacenado el archivo'
+            ],200);
+
+
+        } else {
+           return response()->json([
+            'error' => 'No se ha enviado ningun archivo, o no tiene la extension correcta'
+           ],404);
+        }
+    }
+
+    public function validarArchivo(Request $request){
+        $validator = $request->validate([
+            'archivo' => 'required|file|mimes:pdf,png,heic,jpg',
+        ]);
+
+        if($validator){
+            return response()->json([
+                'error' => $validator,
+                'message' => 'Error en los datos proporcionados.'
+            ], 422);
+        }
     }
 
     /**
@@ -106,6 +194,7 @@ class MedicionesController extends Controller
      */
     public function validateData(Request $request)
     {
+        //Reglas
         $rules = [
             'id_cliente' => 'required|integer',
             'articulo' => 'required|string|max:70',
@@ -130,6 +219,7 @@ class MedicionesController extends Controller
             'observaciones' => 'nullable|string',
         ];
 
+        //Mensajes
         $messages = [
             'id_cliente.required' => 'El campo ID del cliente es obligatorio.',
             'id_cliente.integer' => 'El campo ID del cliente debe ser un número entero.',
@@ -139,6 +229,7 @@ class MedicionesController extends Controller
             'fecha.required' => 'El campo fecha es obligatorio.',
         ];
 
+        //Funcion que valida las reglas
         $validator = Validator::make($request->all(), $rules, $messages);
 
 
