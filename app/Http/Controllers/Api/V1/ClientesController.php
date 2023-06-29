@@ -54,13 +54,21 @@ class ClientesController extends Controller
         $registro = Clientes::create($request->all());
 
         //Se almacena en la base de datos
-        $registro->save();
+        $result = $registro->save();
 
-        //Retorna una respuesta positiva.
-        return response()->json([
-            'data' => $request->all(),
-            'mensaje' => 'Cliente creado con exito'
-        ], 200);
+        if ($result) {
+            //Retorna una respuesta positiva.
+            return response()->json([
+                'data' => $request->all(),
+                'mensaje' => 'Cliente creado con exito',
+                'status' => 200
+            ], 200);
+        } else {
+            return response()->json([
+                'mensaje' => 'Error',
+                'status' => 404
+            ], 404);
+        }
     }
 
     /**
@@ -78,21 +86,21 @@ class ClientesController extends Controller
                 return response()->json(
                     [
                         'data' => $cliente,
-                        'message' => 'Cliente modificado con éxito'
+                        'message' => 'Cliente modificado con éxito',
+                        'status' => 200,
                     ],
                     200
                 );
             } else {
-                return response()->json(['message' => 'Cliente no encontrado'], 404);
+                return response()->json(['message' => 'Cliente no encontrado', 'status' => 404], 404);
             }
         } catch (\Exception $ex) {
             //throw $th;
             return response()->json([
                 'Mensaje' => 'Error, hay datos nulos'
-            ],500);
 
+            ], 500);
         }
-
     }
 
     /**
@@ -138,6 +146,7 @@ class ClientesController extends Controller
             'apellido1' => 'required|string|max:60',
             'apellido2' => 'required|string|max:60',
             'cedula' => 'required|string|max:20|unique:clientes',
+            'email' => 'required|email',
             'telefono' => 'required|string|max:20',
             'empresa' => 'nullable|string|max:70',
             'departamento' => 'nullable|string|max:70',

@@ -24,12 +24,14 @@ class LoginController extends Controller
             return response()->json([
 
                 'token' => JWTAuth::fromUser($user), // Genera el JWT utilizando el usuario,
-                'mensaje' => 'Success'
+                'mensaje' => 'Success',
+                'status' => 200
             ]);
         }
 
         return response()->json([
-            'mensaje' => 'No se ha podido autenticar'
+            'mensaje' => 'No se ha podido autenticar',
+            'status' => 404,
         ], 401);
     }
 

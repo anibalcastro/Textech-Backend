@@ -21,6 +21,7 @@ class ClientesFactory extends Factory
             'apellido1' => $this->faker->name(),
             'apellido2' => $this->faker->name(),
             'cedula' =>'101110111',
+            'email' => 'anibalcastro194@gmail.com',
             'telefono' => '8888 8888',
             'empresa' => $this->faker->name(),
             'departamento' => $this->faker->name(),

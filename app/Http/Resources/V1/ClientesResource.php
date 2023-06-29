@@ -15,10 +15,12 @@ class ClientesResource extends JsonResource
     public function toArray(Request $request): array
     {
         return[
+            'id' => $this->id,
             'nombre' => $this->nombre,
             'apellido1' => $this->apellido1,
             'apellido2'=> $this->apellido2,
             'cedula' => $this->cedula,
+            'email' => $this->email,
             'telefono' => $this->telefono,
             'empresa' => $this->empresa,
             'departamento' => $this->departamento,
