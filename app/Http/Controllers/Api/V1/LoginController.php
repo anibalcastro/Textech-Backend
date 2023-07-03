@@ -2,37 +2,45 @@
 
 namespace App\Http\Controllers\Api\V1;
 
-use App\Http\Controllers\Controller;
-use Tymon\JWTAuth\Facades\JWTAuth;
-use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
+use Exception;
 use App\Models\User;
+use Illuminate\Http\Request;
+use Tymon\JWTAuth\Facades\JWTAuth;
+use App\Http\Controllers\Controller;
+use Illuminate\Support\Facades\Auth;
 
 class LoginController extends Controller
 {
     public function login(Request $request)
     {
 
-        $this->validarLogin($request);
 
+        try {
+            $this->validarLogin($request);
 
-        if (Auth::attempt($request->only('email', 'password'))) {
+            if (Auth::attempt($request->only('email', 'password'))) {
+                $user = Auth::user(); // Obtén el usuario autenticado actualmente
 
-            $nombreUsuario = $this->retornarNombre($request->email);
-            $user = Auth::user(); // Obtén el usuario autenticado actualmente
+                return response()->json([
+                    'token' => JWTAuth::fromUser($user), // Genera el JWT utilizando el usuario
+                    'mensaje' => 'Success',
+                    'status' => 200
+                ]);
+            }
 
             return response()->json([
-
-                'token' => JWTAuth::fromUser($user), // Genera el JWT utilizando el usuario,
-                'mensaje' => 'Success',
-                'status' => 200
-            ]);
+                'mensaje' => 'No se ha podido autenticar',
+                'status' => 404,
+            ], 401);
+        } catch (Exception $e) {
+            // Captura cualquier excepción lanzada durante el proceso de autenticación
+            return response()->json([
+                'mensaje' => 'Se produjo un error en el servidor',
+                'status' => 500,
+                'error' => $e->getMessage(),
+                'request' => $request->all(),
+            ], 500);
         }
-
-        return response()->json([
-            'mensaje' => 'No se ha podido autenticar',
-            'status' => 404,
-        ], 401);
     }
 
     /**Funcion para retornar el nombre del usuario que desea ingresar */
