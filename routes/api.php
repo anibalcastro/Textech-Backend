@@ -18,6 +18,8 @@ use function Ramsey\Uuid\v1;
 |
 */
 
+header("Access-Control-Allow-Origin: *");
+
 Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
     return $request->user();
 });
