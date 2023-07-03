@@ -25,10 +25,13 @@ class MedicionesFactory extends Factory
             'busto_superior' => 96.0,
             'cintura_superior' => 86.0,
             'cadera_superior' => 106,
-            'largo_manga_superior' => 38,
-            'ancho_manga_superior' => 28,
+            'largo_manga_corta_superior' => 38,
+            'largo_manga_larga_superior' => 0,
+            'ancho_manga_corta_superior' => 28,
+            'ancho_manga_larga_superior' => 0,
             'largo_total_superior' => 53,
             'alto_pinza_superior' => 28,
+            'talla' => 'L',
             'fecha' => $this->faker->date(),
             'observaciones' => $this->faker->text()
 

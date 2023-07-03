@@ -28,10 +28,13 @@ return new class extends Migration
             $table->decimal('busto_superior',10,2)->default(0);
             $table->decimal('cintura_superior',10,2)->default(0);
             $table->decimal('cadera_superior',10,2)->default(0);
-            $table->decimal('largo_manga_superior',10,2)->default(0);
-            $table->decimal('ancho_manga_superior',10,2)->default(0);
+            $table->decimal('largo_manga_corta_superior',10,2)->default(0);
+            $table->decimal('largo_manga_larga_superior',10,2)->default(0);
+            $table->decimal('ancho_manga_corta_superior',10,2)->default(0);
+            $table->decimal('ancho_manga_larga_superior',10,2)->default(0);
             $table->decimal('largo_total_superior',10,2)->default(0);
             $table->decimal('alto_pinza_superior',10,2)->default(0);
+            $table->string('talla',10);
             $table->date('fecha');
             $table->longText('observaciones');
 

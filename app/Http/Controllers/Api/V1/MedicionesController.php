@@ -4,10 +4,11 @@ namespace App\Http\Controllers\Api\V1;
 
 use App\Models\Mediciones;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use App\Http\Controllers\Controller;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Validator;
 use App\Http\Resources\V1\MedicionesResource;
-use Illuminate\Support\Facades\Storage;
 
 
 class MedicionesController extends Controller
@@ -20,11 +21,19 @@ class MedicionesController extends Controller
         return MedicionesResource::collection(Mediciones::latest()->paginate());
     }
 
-    /*
-    public function show(Mediciones $mediciones){
-        return new Mediciones($mediciones);
+
+    public function show()
+    {
+        $mediciones = DB::table('clientes as c')
+            ->join('mediciones as m', 'm.id_cliente', '=', 'c.id')
+            ->select('c.nombre', 'c.apellido1', 'c.apellido2', 'c.cedula', 'm.*')
+            ->get();
+
+        return response()->json([
+            'data' => $mediciones,
+            'status' => 200
+        ]);
     }
-    */
 
     /**
      * Elimina mediciones
@@ -54,33 +63,40 @@ class MedicionesController extends Controller
             $articulosCliente = Mediciones::where('id_cliente', $request->id_cliente)->pluck('articulo');
 
             //Validamos si lo que el usuario quiere ingresar exista en el arreglo.
-            if (in_array($request->articulo, $articulosCliente->toArray())){
+            if (in_array($request->articulo, $articulosCliente->toArray())) {
 
                 //Si es asi, retornamos una respuesta
                 return response()->json([
                     'mensaje' => "Error, ya existen medidas al cliente del articulo " . $request->articulo,
                 ], 200);
-            }
-            else{
+            } else {
                 //Creamos el registro
                 $nRegistro = Mediciones::create($request->all());
 
                 //Guardamos en la base de datos.
-                $nRegistro->save();
+                $resultado = $nRegistro->save();
 
-                //Retornamos una respuesta.
-                return response()->json(
-                    [
-                        'data' => $request->all(),
-                        'mensaje' => 'Registro creado con éxito'
-                    ]
-                );
+                if ($resultado) {
+                    //Retornamos una respuesta.
+                    return response()->json(
+                        [
+                            'data' => $request->all(),
+                            'mensaje' => 'Registro creado con éxito',
+                            'status' => 200
+                        ]
+                    );
+                } else {
+                    return response()->json([
+                        'mensaje' => 'Error, no se ha podido almacenar',
+                        'status' => 404
+                    ]);
+                }
             }
         } catch (\Exception $e) {
             //throw $th;
             return response()->json([
                 'error' => $e,
-                'mensaje'=>'Error, hay datos nulos'
+                'mensaje' => 'Error, hay datos nulos'
             ]);
         }
     }
@@ -106,19 +122,28 @@ class MedicionesController extends Controller
                 // Retorna una respuesta
                 return response()->json([
                     'data' => $medida,
-                    'mensaje' => 'Medición modificada con éxito'
+                    'mensaje' => 'Medición modificada con éxito',
+                    'status' => 200
                 ], 200);
             } else {
 
                 //Medicion no encontrada.
                 return response()->json([
-                    'mensaje' => 'Medición no encontrada'
+                    'mensaje' => 'Medición no encontrada',
+                    'status' => 404,
                 ], 404);
             }
         } catch (\Exception $e) {
             //throw $th;
+            // Obtener el mensaje de error
+            $error_message = $e->getMessage();
+
+            // Obtener los datos que se enviaron en la solicitud
+            $request_data = $request->all();
+
             return response()->json([
-                'error' => $e,
+                'error' => $error_message,
+                'request_data' => $request_data,
                 'mensaje' => 'Error, hay datos nulos'
             ], 500);
         }
@@ -130,30 +155,30 @@ class MedicionesController extends Controller
      * {$id_cliente} => Identificador primario del cliente.
      *
      */
-    public function retornarMedicionesCliente($id_cliente){
+    public function retornarMedicionesCliente($id_cliente)
+    {
 
         //Resultado de la consulta donde id_cliente es igual al parametro.
         $resultado = Mediciones::where('id_cliente', $id_cliente)->get();
 
         //Valida si el resultado es vacio
-        if(empty($resultado)){
+        if (empty($resultado)) {
 
             //Retorna una respuesta
             return response()->json([
                 'mensaje' => 'No se encontró ningun usuario'
-            ],404);
-
+            ], 404);
         }
 
         // Retorna la informacion del cliente con todas las medidas
         return response()->json([
-            'data'=> $resultado,
+            'data' => $resultado,
             'mensaje' => 'Mediciones del cliente'
-        ],200);
-
+        ], 200);
     }
 
-    public function almacenarArchivo(Request $request, $id_medida){
+    public function almacenarArchivo(Request $request, $id_medida)
+    {
 
         $this->validarArchivo($request);
 
@@ -166,22 +191,21 @@ class MedicionesController extends Controller
             return response()->json([
                 'data' => $path,
                 'mensajes' => 'Se ha almacenado el archivo'
-            ],200);
-
-
+            ], 200);
         } else {
-           return response()->json([
-            'error' => 'No se ha enviado ningun archivo, o no tiene la extension correcta'
-           ],404);
+            return response()->json([
+                'error' => 'No se ha enviado ningun archivo, o no tiene la extension correcta'
+            ], 404);
         }
     }
 
-    public function validarArchivo(Request $request){
+    public function validarArchivo(Request $request)
+    {
         $validator = $request->validate([
             'archivo' => 'required|file|mimes:pdf,png,heic,jpg',
         ]);
 
-        if($validator){
+        if ($validator) {
             return response()->json([
                 'error' => $validator,
                 'message' => 'Error en los datos proporcionados.'

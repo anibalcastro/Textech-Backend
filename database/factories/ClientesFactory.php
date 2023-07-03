@@ -17,14 +17,14 @@ class ClientesFactory extends Factory
     public function definition(): array
     {
         return [
-            'nombre'=>$this->faker->name(),
-            'apellido1' => $this->faker->name(),
-            'apellido2' => $this->faker->name(),
-            'cedula' =>'101110111',
+            'nombre'=>'Anibal Jafeth',
+            'apellido1' => 'Castro',
+            'apellido2' => 'Ponce',
+            'cedula' =>'208110305',
             'email' => 'anibalcastro194@gmail.com',
-            'telefono' => '8888 8888',
-            'empresa' => $this->faker->name(),
-            'departamento' => $this->faker->name(),
+            'telefono' => '85424471',
+            'empresa' => 'Independiente',
+            'departamento' => 'TI',
             'comentarios' => $this->faker->text()
         ];
     }

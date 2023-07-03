@@ -29,7 +29,13 @@ class Mediciones extends Model
         'ancho_manga_superior',
         'largo_total_superior',
         'alto_pinza_superior',
+        'talla',
         'fecha',
         'observaciones'
     ];
+
+    public function cliente()
+    {
+        return $this->belongsTo(Cliente::class, 'id_cliente');
+    }
 }
