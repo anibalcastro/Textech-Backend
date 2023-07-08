@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Api\V1;
 
 use App\Models\Clientes;
+use App\Models\Mediciones;
 use Illuminate\Http\Request;
 use App\Http\Resources\V1\ClientesResource;
 use App\Http\Controllers\Controller;
@@ -70,6 +71,37 @@ class ClientesController extends Controller
             ], 404);
         }
     }
+
+    public function eliminarCliente($id_cliente)
+    {
+        try {
+            // Verificar si el cliente existe en la base de datos
+            $cliente = Clientes::find($id_cliente);
+            if (!$cliente) {
+                return response()->json([
+                    'mensaje' => 'El cliente no existe',
+                    'status' => 404
+                ]);
+            }
+
+            // Eliminar todas las mediciones del cliente
+            Mediciones::where('id_cliente', $id_cliente)->delete();
+
+            // Eliminar el cliente
+            $cliente->delete();
+
+            return response()->json([
+                'mensaje' => 'Cliente y sus mediciones eliminados correctamente',
+                'status' => 200
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'error' => $e,
+                'mensaje' => 'Error al eliminar el cliente y sus mediciones'
+            ], 500);
+        }
+    }
+
 
     /**
      * Funcion creada para modificar clientes, se maneja por medio del metodo post.

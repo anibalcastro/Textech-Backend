@@ -31,6 +31,9 @@ Route::post('v1/clientes/registrar', [App\Http\Controllers\Api\V1\ClientesContro
 Route::post('v1/clientes/editar/{id}', [App\Http\Controllers\Api\V1\ClientesController::class, 'modificarCliente'])->middleware('jwt.auth');
 //Ruta para obtener un cliente especifico.
 Route::post('v1/clientes/{id}', [App\Http\Controllers\Api\V1\ClientesController::class, 'obtenerCliente'])->middleware('jwt.auth');
+//Ruta para eliminar un cliente por medio del identificador
+Route::post('v1/clientes/eliminar/{id_cliente}', [App\Http\Controllers\Api\V1\ClientesController::class, 'eliminarCliente'])->middleware('jwt.auth');
+
 /***************** */
 
 //*** */
@@ -40,6 +43,7 @@ Route::post('v1/mediciones/registrar', [App\Http\Controllers\Api\V1\MedicionesCo
 Route::post('v1/mediciones/editar/{id}', [App\Http\Controllers\Api\V1\MedicionesController::class, 'modificarMedida'])->middleware('jwt.auth');
 Route::post('v1/mediciones/{id_cliente}', [App\Http\Controllers\Api\V1\MedicionesController::class, 'retornarMedicionesCliente'])->middleware('jwt.auth');
 Route::get ('v1/mediciones/clientes', [App\Http\Controllers\Api\V1\MedicionesController::class, 'show'])->middleware('jwt.auth');
+Route::post('v1/mediciones/eliminar/{id_medicion}',[App\Http\Controllers\Api\V1\MedicionesController::class, 'eliminarMedida'])->middleware('jwt.auth');
 /***** */
 //Login
 Route::post('v1/login', [App\Http\Controllers\Api\V1\LoginController::class, 'login']);

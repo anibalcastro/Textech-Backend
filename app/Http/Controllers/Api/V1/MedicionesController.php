@@ -50,41 +50,65 @@ class MedicionesController extends Controller
         ]);
     }
 
+    public function eliminarMedida($id_medicion)
+{
+    try {
+        // Validar los datos del request si es necesario
+
+        // Verificar si la medida existe en la base de datos
+        $medida = Mediciones::find($id_medicion);
+        if (!$medida) {
+            return response()->json([
+                'mensaje' => 'La medida no existe',
+                'status' => 404
+            ]);
+        }
+
+        // Eliminar la medida
+        $medida->delete();
+
+        return response()->json([
+            'mensaje' => 'Medida eliminada correctamente',
+            'status' => 200
+        ]);
+    } catch (\Exception $e) {
+        return response()->json([
+            'error' => $e,
+            'mensaje' => 'Error al eliminar la medida'
+        ], 500);
+    }
+}
+
+
     /**
      * Registra medidas en la base de datos, de un cliente especifico.
      */
     public function registrarMedida(Request $request)
     {
         try {
-            //Valida los datos del request
+            // Valida los datos del request
             $this->validateData($request);
 
-            //Obtenemos los articulos del cliente
-            $articulosCliente = Mediciones::where('id_cliente', $request->id_cliente)->pluck('articulo');
+            // Verifica si el artículo ya existe en las mediciones del cliente
+            $existeMedida = Mediciones::where('id_cliente', $request->id_cliente)
+                ->where('articulo', $request->articulo)
+                ->exists();
 
-            //Validamos si lo que el usuario quiere ingresar exista en el arreglo.
-            if (in_array($request->articulo, $articulosCliente->toArray())) {
-
-                //Si es asi, retornamos una respuesta
+            if ($existeMedida) {
                 return response()->json([
-                    'mensaje' => "Error, ya existen medidas al cliente del articulo " . $request->articulo,
-                ], 200);
+                    'mensaje' => "Error, ya existen medidas del cliente para el artículo " . $request->articulo,'status'=> 300,
+                ], 404);
             } else {
-                //Creamos el registro
+                // Crea el registro
                 $nRegistro = Mediciones::create($request->all());
 
-                //Guardamos en la base de datos.
-                $resultado = $nRegistro->save();
-
-                if ($resultado) {
-                    //Retornamos una respuesta.
-                    return response()->json(
-                        [
-                            'data' => $request->all(),
-                            'mensaje' => 'Registro creado con éxito',
-                            'status' => 200
-                        ]
-                    );
+                if ($nRegistro) {
+                    // Retornamos una respuesta
+                    return response()->json([
+                        'data' => $request->all(),
+                        'mensaje' => 'Registro creado con éxito',
+                        'status' => 200
+                    ]);
                 } else {
                     return response()->json([
                         'mensaje' => 'Error, no se ha podido almacenar',
@@ -93,13 +117,13 @@ class MedicionesController extends Controller
                 }
             }
         } catch (\Exception $e) {
-            //throw $th;
             return response()->json([
                 'error' => $e,
                 'mensaje' => 'Error, hay datos nulos'
             ]);
         }
     }
+
 
     /**
      * Modifica una medida especifica, por medio del identificador de la medida.

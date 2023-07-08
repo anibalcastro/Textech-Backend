@@ -33,7 +33,8 @@ class Mediciones extends Model
         'alto_pinza_superior',
         'talla',
         'fecha',
-        'observaciones'
+        'observaciones',
+        'sastre'
     ];
 
     public function cliente()

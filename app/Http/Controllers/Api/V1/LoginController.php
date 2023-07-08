@@ -13,8 +13,6 @@ class LoginController extends Controller
 {
     public function login(Request $request)
     {
-
-
         try {
             $this->validarLogin($request);
 
@@ -24,6 +22,7 @@ class LoginController extends Controller
                 return response()->json([
                     'token' => JWTAuth::fromUser($user), // Genera el JWT utilizando el usuario
                     'mensaje' => 'Success',
+                    'role' => $user->role,
                     'status' => 200
                 ]);
             }
