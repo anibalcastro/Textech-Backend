@@ -4,6 +4,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Api\V1\ClientesController;
 use App\Http\Controllers\Api\V1\MedicionesController;
+use App\Http\Controllers\Api\V1\EmpresasController;
 
 use function Ramsey\Uuid\v1;
 
@@ -36,17 +37,26 @@ Route::post('v1/clientes/eliminar/{id_cliente}', [App\Http\Controllers\Api\V1\Cl
 
 /***************** */
 
-//*** */
-//Ruta de mediciones
+/***************** */
+//Rutas de mediciones
 Route::apiResource('v1/mediciones', MedicionesController::class)->only((['index', 'show', 'destroy']))->middleware('jwt.auth');
 Route::post('v1/mediciones/registrar', [App\Http\Controllers\Api\V1\MedicionesController::class, 'registrarMedida'])->middleware('jwt.auth');
 Route::post('v1/mediciones/editar/{id}', [App\Http\Controllers\Api\V1\MedicionesController::class, 'modificarMedida'])->middleware('jwt.auth');
 Route::post('v1/mediciones/{id_cliente}', [App\Http\Controllers\Api\V1\MedicionesController::class, 'retornarMedicionesCliente'])->middleware('jwt.auth');
 Route::get ('v1/mediciones/clientes', [App\Http\Controllers\Api\V1\MedicionesController::class, 'show'])->middleware('jwt.auth');
 Route::post('v1/mediciones/eliminar/{id_medicion}',[App\Http\Controllers\Api\V1\MedicionesController::class, 'eliminarMedida'])->middleware('jwt.auth');
-/***** */
+/***************** */
+
+/***************** */
 //Login
 Route::post('v1/login', [App\Http\Controllers\Api\V1\LoginController::class, 'login']);
+/***************** */
 
-/*** */
-//Ruta de usuarios
+/***************** */
+//Rutas de empresas
+Route::apiResource('v1/empresas', EmpresasController::class)->only((['index', 'mostrar', 'destruir']))->middleware('jwt.auth');
+Route::get('v1/empresas/cantidad', [App\Http\Controllers\Api\V1\EmpresasController::class, 'cantidadEmpresas'])->middleware('jwt.auth');
+Route::post('v1/empresas/registrar', [App\Http\Controllers\Api\V1\EmpresasController::class, 'registrarEmpresa'])->middleware('jwt.auth');
+Route::post('v1/empresas/editar/{id}', [App\Http\Controllers\Api\V1\EmpresasController::class, 'modificarEmpresa'])->middleware('jwt.auth');
+Route::post('v1/empresas/eliminar/{id_empresa}', [App\Http\Controllers\Api\V1\EmpresasController::class, 'eliminarEmpresa'])->middleware('jwt.auth');
+/***************** */
