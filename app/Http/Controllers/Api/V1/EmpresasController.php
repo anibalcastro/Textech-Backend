@@ -15,7 +15,7 @@ class EmpresasController extends Controller
     /**Funcion retorna todos los datos de la tabla empresas */
     public function index()
     {
-        return EmpresasResource::collection(Empresas::latest()->paginate());
+        return EmpresasResource::collection(Empresas::all());
     }
 
     /**Muestra las empresas */

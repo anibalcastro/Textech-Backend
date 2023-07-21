@@ -16,7 +16,7 @@ class ClientesController extends Controller
      */
     public function index()
     {
-        return ClientesResource::collection(Clientes::latest()->paginate());
+        return ClientesResource::collection(Clientes::all());
     }
 
     /**

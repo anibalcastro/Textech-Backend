@@ -18,7 +18,7 @@ class MedicionesController extends Controller
      */
     public function index()
     {
-        return MedicionesResource::collection(Mediciones::latest()->paginate());
+        return MedicionesResource::collection(Mediciones::all());
     }
 
 
