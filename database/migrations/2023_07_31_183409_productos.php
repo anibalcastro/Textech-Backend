@@ -17,6 +17,7 @@ return new class extends Migration
             $table->longText('descripcion');
             $table->decimal('precio_unitario');
             $table->string('categoria');
+            $table->timestamps();
         });
     }
 
@@ -25,6 +26,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        //
+        Schema::dropIfExists('productos');
     }
 };
