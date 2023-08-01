@@ -5,6 +5,7 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Api\V1\ClientesController;
 use App\Http\Controllers\Api\V1\MedicionesController;
 use App\Http\Controllers\Api\V1\EmpresasController;
+use App\Http\Controllers\Api\V1\ProductosController;
 
 use function Ramsey\Uuid\v1;
 
@@ -26,13 +27,9 @@ Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
 /***************** */
 //Rutas de clientes
 Route::apiResource('v1/clientes', ClientesController::class)->only((['index', 'show', 'destroy']))->middleware('jwt.auth');
-//Ruta para registrar un cliente
 Route::post('v1/clientes/registrar', [App\Http\Controllers\Api\V1\ClientesController::class, 'registrarCliente'])->middleware('jwt.auth');
-//Ruta para modificar un cliente
 Route::post('v1/clientes/editar/{id}', [App\Http\Controllers\Api\V1\ClientesController::class, 'modificarCliente'])->middleware('jwt.auth');
-//Ruta para obtener un cliente especifico.
 Route::post('v1/clientes/{id}', [App\Http\Controllers\Api\V1\ClientesController::class, 'obtenerCliente'])->middleware('jwt.auth');
-//Ruta para eliminar un cliente por medio del identificador
 Route::post('v1/clientes/eliminar/{id_cliente}', [App\Http\Controllers\Api\V1\ClientesController::class, 'eliminarCliente'])->middleware('jwt.auth');
 
 /***************** */
@@ -60,3 +57,20 @@ Route::post('v1/empresas/registrar', [App\Http\Controllers\Api\V1\EmpresasContro
 Route::post('v1/empresas/editar/{id}', [App\Http\Controllers\Api\V1\EmpresasController::class, 'modificarEmpresa'])->middleware('jwt.auth');
 Route::post('v1/empresas/eliminar/{id_empresa}', [App\Http\Controllers\Api\V1\EmpresasController::class, 'eliminarEmpresa'])->middleware('jwt.auth');
 /***************** */
+
+
+/***************** */
+//Ruta de productos
+Route::apiResource('v1/productos', ProductosController::class)->only((['index']))->middleware('jwt.auth');
+Route::get('v1/productos/cantidad', [App\Http\Controllers\Api\V1\ProductosController::class, 'cantidadProductos'])->middleware('jwt.auth');
+Route::post('v1/productos/registrar', [App\Http\Controllers\Api\V1\ProductosController::class, 'registrarProducto'])->middleware('jwt.auth');
+Route::post('v1/productos/editar/{id_producto}', [App\Http\Controllers\Api\V1\ProductosController::class, 'modificarProducto'])->middleware('jwt.auth');
+Route::post('v1/productos/editarprecio/{id_producto}', [App\Http\Controllers\Api\V1\ProductosController::class, 'modifcarPrecioProducto'])->middleware('jwt.auth');
+Route::post('v1/productos/eliminar{id_producto}', [App\Http\Controllers\Api\V1\ProductosController::class, 'eliminarProducto'])->middleware('jwt.auth');
+
+/***************** */
+//Ruta de orden de pedidos
+
+
+
+
