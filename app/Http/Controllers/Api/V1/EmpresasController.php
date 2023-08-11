@@ -154,6 +154,7 @@ class EmpresasController extends Controller
     {
         $reglas = [
             'nombre_empresa' => 'required|string',
+            'razon_social' => 'required|string',
             'cedula' => 'required|unique:empresas,cedula',
             'email' => 'required|email|unique:empresas,email',
             'nombre_encargado' => 'required|string',
