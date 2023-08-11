@@ -12,6 +12,7 @@ class Empresas extends Model
     protected $fillable =[
         'id',
         'nombre_empresa',
+        'razon_social',
         'cedula',
         'email',
         'nombre_encargado',
