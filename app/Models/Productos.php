@@ -15,4 +15,8 @@ class Productos extends Model
         'precio_unitario',
         'categoria'
     ];
+
+    public function orden_detalle(){
+        return $this->belongsTo(orden_detalle::class, 'id_producto', 'id');
+    }
 }
