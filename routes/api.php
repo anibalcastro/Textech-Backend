@@ -5,6 +5,7 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Api\V1\ClientesController;
 use App\Http\Controllers\Api\V1\MedicionesController;
 use App\Http\Controllers\Api\V1\EmpresasController;
+use App\Http\Controllers\Api\V1\OrdenPedidoController;
 use App\Http\Controllers\Api\V1\ProductosController;
 
 use function Ramsey\Uuid\v1;
@@ -66,11 +67,16 @@ Route::get('v1/productos/cantidad', [App\Http\Controllers\Api\V1\ProductosContro
 Route::post('v1/productos/registrar', [App\Http\Controllers\Api\V1\ProductosController::class, 'registrarProducto'])->middleware('jwt.auth');
 Route::post('v1/productos/editar/{id_producto}', [App\Http\Controllers\Api\V1\ProductosController::class, 'modificarProducto'])->middleware('jwt.auth');
 Route::post('v1/productos/editarprecio/{id_producto}', [App\Http\Controllers\Api\V1\ProductosController::class, 'modifcarPrecioProducto'])->middleware('jwt.auth');
-Route::post('v1/productos/eliminar{id_producto}', [App\Http\Controllers\Api\V1\ProductosController::class, 'eliminarProducto'])->middleware('jwt.auth');
+Route::post('v1/productos/eliminar/{id_producto}', [App\Http\Controllers\Api\V1\ProductosController::class, 'eliminarProducto'])->middleware('jwt.auth');
 
 /***************** */
 //Ruta de orden de pedidos
-
-
+Route::apiResource('v1/ordenes', OrdenPedidoController::class)->only((['index']))->middleware('jwt.auth');
+Route::get('v1/ordenes/cantidad', [App\Http\Controllers\Api\V1\OrdenPedidoController::class, 'cantidadOrdenEstado'])->middleware('jwt.auth');
+Route::post('v1/ordenes/registrar', [App\Http\Controllers\Api\V1\OrdenPedidoController::class, 'crearOrden'])->middleware('jwt.auth');
+Route::post('v1/ordenes/editar/{id_orden}', [App\Http\Controllers\Api\V1\OrdenPedidoController::class, 'modificarOrden'])->middleware('jwt.auth');
+Route::post('v1/ordenes/editar/estado/{id_orden}', [App\Http\Controllers\Api\V1\OrdenPedidoController::class, 'actualizarEstadoPedido'])->middleware('jwt.auth');
+Route::post('v1/ordenes/eliminar/{id_orden}', [App\Http\Controllers\Api\V1\OrdenPedidoController::class, 'eliminarOrden'])->middleware('jwt.auth');
+Route::post('v1/ordenes/editar/estado/{id_orden}', [App\Http\Controllers\Api\V1\OrdenPedidoController::class, 'actualizarEstadoPedido'])->middleware('jwt.auth');
 
 
