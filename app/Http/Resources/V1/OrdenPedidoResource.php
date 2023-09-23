@@ -15,7 +15,8 @@ class OrdenPedidoResource extends JsonResource
     public function toArray(Request $request): array
     {
         return[
-            'id' => $this->id,
+            "id" => $this->id,
+            "titulo" => $this->titulo,
             "id_empresa" => $this->id_empresa,
             "fecha_orden" => $this->fecha_orden,
             "precio_total" => $this->precio_total,
