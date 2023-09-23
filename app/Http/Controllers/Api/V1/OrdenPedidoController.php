@@ -3,6 +3,8 @@
 namespace App\Http\Controllers\Api\V1;
 
 use App\Models\OrdenPedido;
+use App\Models\Facturas;
+
 use Illuminate\Http\Request;
 use App\Models\DetallePedido;
 
@@ -14,7 +16,7 @@ class OrdenPedidoController extends Controller
 {
     public function index()
     {
-        $ordenesConDetalles = OrdenPedido::with('detalles')->get();
+        $ordenesConDetalles = OrdenPedido::with('detalles')->latest()->get();
 
         return response()->json([
             'ordenes' => $ordenesConDetalles,
@@ -22,6 +24,17 @@ class OrdenPedidoController extends Controller
         ]);
     }
 
+    /**
+     * Get actual date.
+     */
+    public function obtenerFechaActual()
+    {
+        return date('Y-m-d H:i:s');
+    }
+
+    /**
+     * Create an order, detail and invoice.
+     */
     public function crearOrden(Request $request)
     {
         try {
@@ -32,9 +45,13 @@ class OrdenPedidoController extends Controller
             $validador = $this->validarDatosOrden($data['orden']);
 
             if ($validador === true) {
+                // Iniciar una transacción de base de datos
+                DB::beginTransaction();
+
                 // Obtén la orden y los detalles del JSON
                 $orden = $data['orden'];
                 $detalles = $orden['detalles'];
+                $factura = $orden['factura'];
 
                 // Crea la orden
                 $crearOrden = OrdenPedido::create($orden);
@@ -43,20 +60,65 @@ class OrdenPedidoController extends Controller
                 $idOrden = $crearOrden->id;
 
                 // Crea los detalles de la orden
-                $resultadoDetalle = $this->crearOrdenDetalle($detalles, $idOrden);
+                $resultadoDetalles = $this->crearOrdenDetalle($detalles, $idOrden);
 
-                if ($resultadoDetalle) {
-                    return response()->json([
-                        'mensaje' => 'Orden creada con éxito',
-                        'orden' => $orden,
-                        'status' => 200
-                    ], 200);
-                } else {
-                    $ordenEliminar = OrdenPedido::find($idOrden);
+                if ($resultadoDetalles) {
 
-                    if($ordenEliminar){
-                        $ordenEliminar->delete();
+                    $objFactura = new Facturas();
+                    $objFactura->order_id = $idOrden;
+                    $objFactura->empresa_id = $factura[0]['id_empresa'];;
+                    $objFactura->subtotal = $factura[0]['subtotal'];
+                    $objFactura->iva = $factura[0]['iva'];
+                    $objFactura->monto = $factura[0]['monto'];
+                    $objFactura->fecha = $this->obtenerFechaActual();
+                    $objFactura->metodo_pago = 'Pendiente';
+                    $objFactura->saldo_restante = $factura[0]['saldo_restante'];
+                    $objFactura->comentario = $factura[0]['comentario'];
+                    $objFactura->estado = 'Activo';
+                    $objFactura->cajero = $factura[0]['cajero'];
+
+                    $facturaController = app(FacturasController::class);
+                    $resultadoFactura = $facturaController->generarFactura($objFactura);
+
+                    $data = $resultadoFactura->getData();
+
+                    if ($data->status === 200) {
+                        // Confirma la transacción
+                        DB::commit();
+
+                        $idFactura = $this->obtenerUltimoIdFactura();
+
+                        // Usar find para obtener la orden de pedido por ID
+                        $ordenPedido = OrdenPedido::find($idOrden);
+
+                        $ordenPedido->id_factura = $idFactura;
+
+                        $resultado = $ordenPedido->update();
+
+                        if ($resultado) {
+
+                            return response()->json([
+                                'mensaje' => 'Orden creada con éxito',
+                                'orden' => $orden,
+                                'status' => 200
+                            ], 200);
+                        } else {
+
+                            // Si ocurre una excepción, revierte la transacción (si se inició)
+                            if (DB::transactionLevel() > 0) {
+                                DB::rollBack();
+                            }
+
+                            return response()->json([
+                                'mensaje' => 'No se pudo obtener la ultima factura',
+                                'status' => 500
+                            ]);
+                        }
                     }
+                } else {
+                    // Si ocurre un error, revierte la transacción
+                    DB::rollBack();
+
                     return response()->json([
                         'mensaje' => 'Error al crear la orden de detalle',
                         'status' => 500
@@ -66,23 +128,34 @@ class OrdenPedidoController extends Controller
                 return response()->json([
                     'mensaje' => 'Los datos ingresados son incorrectos',
                     'error' => $validador,
-                    'status' => 500
-                ], 500);
+                    'status' => 422 // Código de estado para datos no procesables (Unprocessable Entity)
+                ], 422);
             }
         } catch (\Exception $e) {
+            // Si ocurre una excepción, revierte la transacción (si se inició)
+            if (DB::transactionLevel() > 0) {
+                DB::rollBack();
+            }
+
             return response()->json([
+                'dataOrden' => $data,
                 'mensaje' => 'Error al registrar la orden',
-                'error' => $e,
+                'error' => $e->getMessage(),
                 'status' => 500
             ], 500);
         }
     }
 
+    /**
+     * Create an order detail
+     */
     public function crearOrdenDetalle($detalles, $idOrden)
     {
         $detallePedidoValido = [];
         $detallePedidoIncorrecto = [];
         $contadorAgregados = 0;
+
+
 
         foreach ($detalles as $detalle) {
             $detalle["id_pedido"] = $idOrden; // Asigna el id del pedido al detalle
@@ -111,98 +184,181 @@ class OrdenPedidoController extends Controller
             } else {
                 return false; // No se agregaron correctamente todos los detalles válidos
             } // Retornar false si no se agregaron correctamente todos los detalles válidos
-        }
-        else{
+        } else {
             return ['detalleIncorrecto' => $detallePedidoIncorrecto, 'resultado' => false];
         }
     }
 
+    /**
+     * Get a latest id of an invoice.
+     */
+    public function obtenerUltimoIdFactura()
+    {
+        $ultimoId = Facturas::max('id');
+        return $ultimoId;
+    }
+
+    /**
+     * Modify an specific order
+     */
     public function modificarOrden(Request $request, $id_orden)
     {
+        try {
+            //code...
+            //get data
+            $data = json_decode($request->getContent(), true);
 
-        $data = json_decode($request->getContent(), true);
+            $ordenArray = $data["orden"];
+            $detalles = $ordenArray["detalles"];
 
-        $ordenArray = $data["orden"];
-        $detalles = $ordenArray["detalles"];
+            //Get a order...
+            $orden = OrdenPedido::find($id_orden);
 
-        $orden = OrdenPedido::find($id_orden);
+            //Validate if no exist order...
+            if (!$orden) {
+                //Return response error...
+                return response()->json([
+                    "mensaje" => "Error, no se ha podido encontrar la orden",
+                    "status" => 404
+                ], 404);
+            }
+
+            $facturaController = app(FacturasController::class);
+            $nuevoMonto = $data["orden"]["factura"][0]["monto"];
+            $nuevoSubtotal = $data["orden"]["factura"][0]['subtotal'];
+            $nuevoIva = $data["orden"]["factura"][0]['iva'];
+
+            //Id orden, monto, subtotal, iva
+            $modificacionFactura = $facturaController->modificarFactura($id_orden, $nuevoMonto, $nuevoSubtotal, $nuevoIva);
 
 
-        if (!$orden) {
+            $resultadoFactura = $modificacionFactura->getData();
+
+            if ($resultadoFactura->status === 200) {
+                //Result of the function ${modificarOrdenDetalle}
+                $modificacionDetalle = $this->modificarOrdenDetalle($detalles, $id_orden); // Pasar el json Request
+
+                $resultadoDetalle = $modificacionDetalle->getData();
+
+                //dd($resultadoDetalle);
+
+                //If result is true
+                if ($resultadoDetalle->status === 200) {
+
+                    $nuevoMontoTotal = $resultadoDetalle->nuevoMonto;
+                    $orden->update(["monto" => $nuevoMontoTotal]);
+
+                    return response()->json([
+                        "mensaje" => "Orden de pedido actualizada",
+                        "nuevoMonto" => $nuevoMontoTotal,
+                        "status" => 200,
+                    ]);
+                } else {
+                    return response()->json([
+                        "mensaje" => "Error al modificar el detalle",
+                        "errores" => $resultadoDetalle->error,
+                        "status" => 400
+                    ]);
+                }
+            } else {
+                return response()->json([
+                    'mensaje' => $resultadoFactura->mensaje,
+                    'status' => 422
+                ]);
+            }
+        } catch (\Exception $e) {
             return response()->json([
-                "mensaje" => "Error, no se ha podido encontrar la orden",
-                "status" => 404
-            ], 404);
-        }
-
-        $resultadoModificacion = $this->modificarOrdenDetalle($detalles); // Pasar el objeto Request
-
-        if ($resultadoModificacion["resultado"]) {
-
-            $nuevoMontoTotal = $resultadoModificacion["nuevoMonto"];
-            $orden->update(["monto" => $nuevoMontoTotal]);
-
-            return response()->json([
-                "mensaje" => "Orden de pedido actualizada",
-                "nuevoMonto" => $nuevoMontoTotal,
-                "status" => 200,
-            ]);
-        } else {
-            return response()->json([
-                "mensaje" => "Error al modificar el detalle",
-                "errores" => $resultadoModificacion["errores"],
-                "status" => 400
+                'mensaje' => 'Error, no se ha podido modificar la orden',
+                'error' => $e->getMessage(),
+                'status' => 422
             ]);
         }
     }
 
-    public function modificarOrdenDetalle($detalles)
+    public function modificarOrdenDetalle($detalles, $id_orden)
     {
         try {
-            //code...
             $modificacionCorrecta = [];
             $nuevoMonto = 0;
 
+            // Obtener los detalles de pedido existentes para el pedido en cuestión
+            $detallePedido = DetallePedido::where('id_pedido', $id_orden)->get();
+
+            // Crear un arreglo para realizar un seguimiento de los detalles existentes que no se actualizarán
+            $detallesNoActualizados = $detallePedido->toArray();
 
             foreach ($detalles as $item) {
-                $idDetalle = $item['id']; // Asegúrate de acceder al campo correctamente
+                // Verificar si el detalle existe en la base de datos
+                $detalleExistente = $detallePedido->where('id_producto', $item['id_producto'])
+                    ->where('descripcion', $item['descripcion'])
+                    ->first();
 
-
-                $detallePedido = DetallePedido::find($idDetalle);
-
-
-                if ($detallePedido) {
-                    $resultado = $detallePedido->update([
-                        'id_producto' => $item['id_producto'],
+                if ($detalleExistente) {
+                    // Actualizar el detalle existente
+                    $resultado = $detalleExistente->update([
                         'precio_unitario' => $item['precio_unitario'],
                         'cantidad' => $item['cantidad'],
-                        'descripcion' => $item['descripcion'],
                         'subtotal' => $item['subtotal'],
-
                     ]);
-                    $nuevoMonto += $item['subtotal'];
-                    // Usa el array asociativo directamente
 
                     if ($resultado) {
+                        $nuevoMonto += $item['subtotal'];
+                        $modificacionCorrecta[] = $item;
+                        // Eliminar el detalle existente del arreglo de no actualizados
+                        $detallesNoActualizados = array_filter($detallesNoActualizados, function ($detalle) use ($item) {
+                            return !($detalle['id_producto'] === $item['id_producto'] && $detalle['descripcion'] === $item['descripcion']);
+                        });
+                    }
+                } else {
+                    // Si el detalle no existe en la base de datos, agregarlo como un nuevo detalle
+                    $detalleNuevo = new DetallePedido([
+                        'id_pedido' => $id_orden,
+                        'id_producto' => $item['id_producto'],
+                        'descripcion' => $item['descripcion'],
+                        'precio_unitario' => $item['precio_unitario'],
+                        'cantidad' => $item['cantidad'],
+                        'subtotal' => $item['subtotal'],
+                    ]);
+
+                    $resultado = $detalleNuevo->save();
+
+                    if ($resultado) {
+                        $nuevoMonto += $item['subtotal'];
                         $modificacionCorrecta[] = $item;
                     }
                 }
             }
 
+            // Eliminar detalles existentes que no se actualizaron (productos eliminados)
+            foreach ($detallesNoActualizados as $detalleNoActualizado) {
+                $detalleExistente = $detallePedido->where('id_producto', $detalleNoActualizado['id_producto'])
+                    ->where('descripcion', $detalleNoActualizado['descripcion'])
+                    ->first();
 
-            if (count($modificacionCorrecta) === count($detalles)) {
-                return ["resultado" => true, "nuevoMonto" => $nuevoMonto];
-            } else {
-                return ["resultado" => false, "errores" => $modificacionCorrecta]; // Cambia esto a los IDs actualizados
+                if ($detalleExistente) {
+                    $detalleExistente->delete();
+                }
             }
-        } catch (\Exception $e) {
+
+            // Actualizar el monto total en la tabla de pedidos
+            $orden = OrdenPedido::find($id_orden);
+            $orden->update(['precio_total' => $nuevoMonto]);
+
             return response()->json([
+                "mensaje" => "Orden de pedido actualizada",
+                "nuevoMonto" => $nuevoMonto,
+                "status" => 200,
+            ]);
+        } catch (\Exception $e) {
+            return response(
+            )->json([
+                'status' => 500,
                 'mensaje' => 'Error al modificar la orden',
-                'error' => $e,
-                'status' => 500
-            ], 500);
+                'error' => $e->getMessage(),
+            ]);
         }
     }
+
 
     /**
      * Función para actualizar el estado del pedido.
@@ -234,12 +390,11 @@ class OrdenPedidoController extends Controller
                         "nuevoEstado" => $nuevoEstado,
                         "estadoAnterior" => $estadoActual
                     ], 200);
-
                 } else {
                     return response()->json([
                         "mensaje" => "El estado no es correcto",
-                        "status" => 404
-                    ], 404);
+                        "status" => 422
+                    ], 422);
                 }
             } else {
                 return response()->json([
@@ -258,16 +413,37 @@ class OrdenPedidoController extends Controller
     /**
      * Función para eliminar la orden de pedido, a la vez se elimina el detalle de ese pedido.
      */
-    public function eliminarOrden($id_orden)
+    public function anularOrden($id_orden)
     {
         $orden = OrdenPedido::find($id_orden);
 
         if ($orden) {
-            DetallePedido::where('id_pedido', $id_orden)->delete();
-            $orden->delete();
+            $orden->estado = 'Anulada';
+            $consecutivo = $orden->id_factura;
+
+            $resultado = $orden->update();
+
+            if ($resultado) {
+                //Se anula la factura también
+                $facturaController = app(FacturasController::class);
+                $resultadoFactura = $facturaController->anularFactura($consecutivo);
+
+                //Anular los abonos...
+                $abonosController = app(AbonosController::class);
+                $resultadoAbono = $abonosController->anularAbonoPorIdFactura($consecutivo);
+
+                $contentFactura = $resultadoFactura->getData();
+                $contentAbono = $resultadoAbono->getData();
+                if ($contentFactura->status === 200 && $contentAbono->status === 200 || $contentAbono->status === 422) {
+                    return response()->json([
+                        'mensaje' => 'Orden anulada, factura y abonos correspondientes tambien han sido anulados.',
+                        'status' => 200
+                    ], 200);
+                }
+            }
 
             return response()->json([
-                "mensaje" => "Orden de pedido y detalle eliminada de manera correcta",
+                "mensaje" => "Orden de pedido y detalle anulada de manera correcta",
                 "status" => 200
             ], 200);
         }
@@ -288,6 +464,7 @@ class OrdenPedidoController extends Controller
         $cantidad_proceso = 0;
         $cantidad_listos = 0;
         $cantidad_entregados = 0;
+        $cantidad_anulados = 0;
 
         foreach ($ordenes as $orden) {
             if ($orden->estado === "Pendiente") {
@@ -298,6 +475,8 @@ class OrdenPedidoController extends Controller
                 $cantidad_listos++;
             } elseif ($orden->estado === "Entregado") {
                 $cantidad_entregados++;
+            } elseif ($orden->estado === "Anulada") {
+                $cantidad_anulados++;
             }
         }
 
@@ -306,6 +485,7 @@ class OrdenPedidoController extends Controller
             "cantidad_enproceso" => $cantidad_proceso,
             "cantidad_listos" => $cantidad_listos,
             "cantidad_entragados" => $cantidad_entregados,
+            "cantidad_anulados" => $cantidad_anulados,
             "status" => 200
         ], 200);
     }
@@ -325,6 +505,7 @@ class OrdenPedidoController extends Controller
     {
         $reglas = [
             "id_empresa" => ['required', 'integer', 'exists:empresas,id'],
+            "titulo" => ['required', 'string', "max:100"],
             "fecha_orden" => ['required', 'date'],
             'precio_total' => ['required', 'numeric', 'regex:/^\d+(\.\d{1,2})?$/'],
             'estado' => ['required', 'string']
@@ -334,6 +515,9 @@ class OrdenPedidoController extends Controller
             'id_empresa.required' => 'El campo ID de empresa es obligatorio.',
             'id_empresa.integer' => 'El campo ID de empresa debe ser un número entero.',
             'id_empresa.exists' => 'El ID de empresa no existe en la tabla de empresas.',
+
+            'titulo.required' => 'El campo estado es obligatorio.',
+            'titulo.string' => 'El campo estado debe ser una cadena de texto.',
 
             'fecha_orden.required' => 'El campo fecha de orden es obligatorio.',
             'fecha_orden.date' => 'El campo fecha de orden debe ser una fecha válida.',
