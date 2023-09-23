@@ -8,6 +8,7 @@ use App\Http\Controllers\Api\V1\EmpresasController;
 use App\Http\Controllers\Api\V1\OrdenPedidoController;
 use App\Http\Controllers\Api\V1\ProductosController;
 
+
 use function Ramsey\Uuid\v1;
 
 /*
@@ -76,7 +77,5 @@ Route::get('v1/ordenes/cantidad', [App\Http\Controllers\Api\V1\OrdenPedidoContro
 Route::post('v1/ordenes/registrar', [App\Http\Controllers\Api\V1\OrdenPedidoController::class, 'crearOrden'])->middleware('jwt.auth');
 Route::post('v1/ordenes/editar/{id_orden}', [App\Http\Controllers\Api\V1\OrdenPedidoController::class, 'modificarOrden'])->middleware('jwt.auth');
 Route::post('v1/ordenes/editar/estado/{id_orden}', [App\Http\Controllers\Api\V1\OrdenPedidoController::class, 'actualizarEstadoPedido'])->middleware('jwt.auth');
-Route::post('v1/ordenes/eliminar/{id_orden}', [App\Http\Controllers\Api\V1\OrdenPedidoController::class, 'eliminarOrden'])->middleware('jwt.auth');
-Route::post('v1/ordenes/editar/estado/{id_orden}', [App\Http\Controllers\Api\V1\OrdenPedidoController::class, 'actualizarEstadoPedido'])->middleware('jwt.auth');
-
+Route::post('v1/ordenes/anular/{id_orden}', [App\Http\Controllers\Api\V1\OrdenPedidoController::class, 'eliminarOrden'])->middleware('jwt.auth');
 
