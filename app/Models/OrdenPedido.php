@@ -19,7 +19,8 @@ class OrdenPedido extends Model
         'id_empresa',
         'fecha_orden',
         'precio_total',
-        'estado'
+        'estado',
+        'comentario'
     ];
 
     public function detalles(){

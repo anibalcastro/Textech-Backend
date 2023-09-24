@@ -443,43 +443,52 @@ class OrdenPedidoController extends Controller
      */
     public function anularOrden($id_orden)
     {
-        $orden = OrdenPedido::find($id_orden);
+        try {
+            $orden = OrdenPedido::find($id_orden);
 
-        if ($orden) {
-            $orden->estado = 'Anulada';
-            $consecutivo = $orden->id_factura;
+            if ($orden) {
 
-            $resultado = $orden->update();
+                $orden->estado = 'Anulada';
+                $consecutivo = $orden->id_factura;
 
-            if ($resultado) {
-                //Se anula la factura también
-                $facturaController = app(FacturasController::class);
-                $resultadoFactura = $facturaController->anularFactura($consecutivo);
+                $resultado = $orden->update();
 
-                //Anular los abonos...
-                $abonosController = app(AbonosController::class);
-                $resultadoAbono = $abonosController->anularAbonoPorIdFactura($consecutivo);
+                if ($resultado) {
+                    //Se anula la factura también
+                    $facturaController = app(FacturasController::class);
+                    $resultadoFactura = $facturaController->anularFactura($consecutivo);
 
-                $contentFactura = $resultadoFactura->getData();
-                $contentAbono = $resultadoAbono->getData();
-                if ($contentFactura->status === 200 && $contentAbono->status === 200 || $contentAbono->status === 422) {
-                    return response()->json([
-                        'mensaje' => 'Orden anulada, factura y abonos correspondientes tambien han sido anulados.',
-                        'status' => 200
-                    ], 200);
+                    //Anular los abonos...
+                    $abonosController = app(AbonosController::class);
+                    $resultadoAbono = $abonosController->anularAbonoPorIdFactura($consecutivo);
+
+                    $contentFactura = $resultadoFactura->getData();
+                    $contentAbono = $resultadoAbono->getData();
+                    if ($contentFactura->status === 200 && $contentAbono->status === 200 || $contentAbono->status === 422) {
+                        return response()->json([
+                            'mensaje' => 'Orden anulada, factura y abonos correspondientes tambien han sido anulados.',
+                            'status' => 200
+                        ], 200);
+                    }
                 }
+
+                return response()->json([
+                    "mensaje" => "Orden de pedido y detalle anulada de manera correcta",
+                    "status" => 200
+                ], 200);
             }
 
             return response()->json([
-                "mensaje" => "Orden de pedido y detalle anulada de manera correcta",
-                "status" => 200
-            ], 200);
+                "mensaje" => "Error, no se ha podido encontrar la orden",
+                "status" => 404
+            ], 404);
+        } catch (\Exception $e) {
+            return response()->json([
+                'mensaje' => 'Error',
+                'error' => $e->getMessage(),
+                'status' => 422
+            ]);
         }
-
-        return response()->json([
-            "mensaje" => "Error, no se ha podido encontrar la orden",
-            "status" => 404
-        ], 404);
     }
 
     /**
