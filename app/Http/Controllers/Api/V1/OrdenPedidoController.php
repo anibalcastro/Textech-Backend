@@ -24,9 +24,9 @@ class OrdenPedidoController extends Controller
         ]);
     }
 
-    public function obtenerOrdenPedido($idOrden)
+    public function ordenPedidoDetalleFactura($id_orden)
     {
-        $orden = OrdenPedido::with('detalles')->where('id', $idOrden)->first(); // Obtén la orden junto con los detalles
+        $orden = OrdenPedido::with('detalles')->where('id', $id_orden)->first(); // Obtén la orden junto con los detalles
 
         if ($orden) {
             $ordenDetalles = $orden->detalles; // Accede a los detalles desde la relación
@@ -35,7 +35,7 @@ class OrdenPedidoController extends Controller
 
             $idFactura = $orden->id_factura;
 
-            $factura = Facturas::find($idFactura)->get();
+            $factura = Facturas::where('id', $idFactura)->get();
 
             return response()->json([
                 'mensaje' => 'Orden encontrada con éxito',
