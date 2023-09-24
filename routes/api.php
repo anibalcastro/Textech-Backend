@@ -78,4 +78,5 @@ Route::post('v1/ordenes/registrar', [App\Http\Controllers\Api\V1\OrdenPedidoCont
 Route::post('v1/ordenes/editar/{id_orden}', [App\Http\Controllers\Api\V1\OrdenPedidoController::class, 'modificarOrden'])->middleware('jwt.auth');
 Route::post('v1/ordenes/editar/estado/{id_orden}', [App\Http\Controllers\Api\V1\OrdenPedidoController::class, 'actualizarEstadoPedido'])->middleware('jwt.auth');
 Route::post('v1/ordenes/anular/{id_orden}', [App\Http\Controllers\Api\V1\OrdenPedidoController::class, 'eliminarOrden'])->middleware('jwt.auth');
+Route::get('v1/ordenes/{$id_orden}', [App\Http\Controllers\Api\V1\OrdenPedidoController::class, 'obtenerOrdenPedido'])->middleware('jwt.auth');
 
