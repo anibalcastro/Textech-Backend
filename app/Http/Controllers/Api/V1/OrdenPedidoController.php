@@ -24,6 +24,35 @@ class OrdenPedidoController extends Controller
         ]);
     }
 
+    public function obtenerOrdenPedido($idOrden)
+    {
+        $orden = OrdenPedido::with('detalles')->where('id', $idOrden)->first(); // Obtén la orden junto con los detalles
+
+        if ($orden) {
+            $ordenDetalles = $orden->detalles; // Accede a los detalles desde la relación
+            $orden->unsetRelation('detalles'); // Quita la relación para separarla
+
+
+            $idFactura = $orden->id_factura;
+
+            $factura = Facturas::find($idFactura)->get();
+
+            return response()->json([
+                'mensaje' => 'Orden encontrada con éxito',
+                'orden' => $orden,
+                'detalles' => $ordenDetalles,
+                'facturas' => $factura,
+                'status' => 200
+            ]);
+        }
+        else{
+            return response()->json([
+                'mensaje' => 'Orden no encontrada',
+                'status' => 422
+            ]);
+        }
+    }
+
     /**
      * Get actual date.
      */
@@ -350,8 +379,7 @@ class OrdenPedidoController extends Controller
                 "status" => 200,
             ]);
         } catch (\Exception $e) {
-            return response(
-            )->json([
+            return response()->json([
                 'status' => 500,
                 'mensaje' => 'Error al modificar la orden',
                 'error' => $e->getMessage(),
