@@ -49,26 +49,37 @@ class ClientesController extends Controller
     public function registrarCliente(Request $request)
     {
         //Validación de los datos.
-        $this->validateData($request);
+        $validador = $this->validateData($request);
 
-        //Se crea el nuevo cliente
-        $registro = Clientes::create($request->all());
+        if ($validador) {
 
-        //Se almacena en la base de datos
-        $result = $registro->save();
 
-        if ($result) {
-            //Retorna una respuesta positiva.
-            return response()->json([
-                'data' => $request->all(),
-                'mensaje' => 'Cliente creado con exito',
-                'status' => 200
-            ], 200);
-        } else {
+            //Se crea el nuevo cliente
+            $cliente = Clientes::create($request->all());
+
+            //Se almacena en la base de datos
+            $result = $cliente->save();
+
+            if ($result) {
+                //Retorna una respuesta positiva.
+                return response()->json([
+                    'data' => $request->all(),
+                    'mensaje' => 'Cliente creado con exito',
+                    'status' => 200
+                ], 200);
+            } else {
+                return response()->json([
+                    'mensaje' => 'Error',
+                    'status' => 404
+                ], 404);
+            }
+        }
+        else{
             return response()->json([
                 'mensaje' => 'Error',
-                'status' => 404
-            ], 404);
+                'status' => 422,
+                'error' => $validador
+            ],422);
         }
     }
 
@@ -177,9 +188,9 @@ class ClientesController extends Controller
             'nombre' => 'required|string|max:60',
             'apellido1' => 'required|string|max:60',
             'apellido2' => 'required|string|max:60',
-            'cedula' => 'required|string|max:20|unique:clientes',
-            'email' => 'required|email',
-            'telefono' => 'required|string|max:20',
+            'cedula' => 'nullable|string|max:20|',
+            'email' => 'nullable|email',
+            'telefono' => 'nullable|string|max:20',
             'empresa' => 'nullable|string|max:70',
             'departamento' => 'nullable|string|max:70',
             'comentarios' => 'nullable|string',
@@ -215,10 +226,9 @@ class ClientesController extends Controller
 
         //Si la validación falla, muestra el error.
         if ($validator->fails()) {
-            return response()->json([
-                'errors' => $validator->errors(),
-                'message' => 'Error en los datos proporcionados.'
-            ], 422);
+            return $validator->errors()->all();
         }
+
+        return true;
     }
 }
