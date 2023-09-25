@@ -53,6 +53,7 @@ class FacturasController extends Controller
         $factura->monto = $monto;
         $factura->subtotal = $subtotal;
         $factura->iva = $iva;
+        $factura->saldo_restante = $monto - $monto_abonado;
 
         $resultado = $factura->update();
 
