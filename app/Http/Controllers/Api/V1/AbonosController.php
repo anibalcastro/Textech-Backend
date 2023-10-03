@@ -14,26 +14,33 @@ class AbonosController extends Controller
 {
     public function index()
     {
-        return AbonosResource::collection(Abonos::lasted()->first());
+        return AbonosResource::collection(Abonos::latest()->get());
+    }
+
+    public function abonosPorFactura($idFactura){
+        return AbonosResource::collection(Abonos::where('factura_id', $idFactura)->get());
     }
 
     public function crearAbono(Request $request)
     {
         try {
             //code...
-            $validarDatos = $this->validarDatos($request);
+            $validarDatos = $this->validarDatos($request->all());
 
             if ($validarDatos === true) {
 
 
-                $consecutivo = $request->consecutivo;
+                $consecutivo = $request->factura_id;
                 $montoAbonar = $request->monto;
 
                 // Llamar a la función para actualizar el monto restante
-                $facturasController = new FacturasController();
+
+                $facturasController = app(FacturasController::class);
                 $actualizarMontoResultado = $facturasController->actualizarMontoRestante($consecutivo, $montoAbonar, 'resta');
 
-                if ($actualizarMontoResultado['status'] === 200) {
+                $resultado = $actualizarMontoResultado->getData();
+
+                if ($resultado->status === 200) {
                     $crearAbono = Abonos::create($request->all());
 
                     $resultado = $crearAbono->save();
@@ -66,8 +73,8 @@ class AbonosController extends Controller
             }
         } catch (\Exception $e) {
             return response()->json([
-                'error' => $e,
-                'mensaje' => 'Error al registrar la empresa'
+                'error' => $e->getMessage(),
+                'mensaje' => 'Error al registrar el abono'
             ]);
         }
     }
@@ -76,22 +83,23 @@ class AbonosController extends Controller
     {
         $consecutivoAbono = $request->abono_id;
 
-        $abono = Abonos::findOrFail('id', $consecutivoAbono);
+        $abono = Abonos::find($consecutivoAbono);
 
         if ($abono) {
             $montoAbono = $abono->monto;
             $consecutivoFactura = $abono->factura_id;
             $abono->estado = 'Anulado';
 
-            $facturasController = new FacturasController();
+            $facturasController = app(FacturasController::class);
 
-            $resultadoActualizacion = $facturasController->actualizarMontoRestante($consecutivoFactura, $montoAbono, 'Suma');
+            $resultadoActualizacion = $facturasController->actualizarMontoRestante($consecutivoFactura, $montoAbono, 'suma');
+            $resultado = $resultadoActualizacion->getData();
 
-            if ($resultadoActualizacion['status'] === 200) {
+            if ($resultado->status === 200) {
 
-                $resultado = $abono->update();
+                $resultadoModificacion = $abono->update();
 
-                if ($resultado) {
+                if ($resultadoModificacion) {
                     return response()->json([
                         'mensaje' => 'El abono ha sido anulado de manera correcta',
                         'status' => 200
@@ -104,8 +112,8 @@ class AbonosController extends Controller
                 }
             } else {
                 return response()->json([
-                    'mensaje' => $resultadoActualizacion['mensaje'],
-                    'status' => $resultadoActualizacion['status']
+                    'mensaje' => $resultado->mensaje,
+                    'status' => $resultado->status
                 ]);
             }
         }

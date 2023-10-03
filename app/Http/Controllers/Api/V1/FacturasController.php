@@ -20,34 +20,34 @@ class FacturasController extends Controller
     /**
      * Retorna facturas con sus abonos respectivos.
      */
-    public function facturasAbonos(){
-
+    public function facturasAbonos()
+    {
     }
 
-    public function modificarFactura($orden_id, $monto, $subtotal, $iva){
+    public function modificarFactura($orden_id, $monto, $subtotal, $iva)
+    {
 
         $factura = Facturas::where('orden_id', $orden_id)->first();
 
-        if (!$factura){
+        if (!$factura) {
             return response()->json([
                 'mensaje' => 'No se encontró la factura para la orden proporcionada',
                 'status' => 404
             ], 404);
         }
 
-       // dd($factura);
+        // dd($factura);
 
         $saldo_restante_actual = $factura->saldo_restante;
         $monto_anterior = $factura->monto;
 
         $monto_abonado = $monto_anterior - $saldo_restante_actual;
 
-        if ($monto_abonado > $monto){
+        if ($monto_abonado > $monto) {
             return response()->json([
                 'mensaje' => 'El monto abonado es mayor que el monto actual de la factura',
                 'status' => 422
-            ],422);
-
+            ], 422);
         }
 
         $factura->monto = $monto;
@@ -61,14 +61,13 @@ class FacturasController extends Controller
             return response()->json([
                 'mensaje' => 'La factura ha sido actualizada con éxito',
                 'status' => 200
-            ],200);
-        }
-        else {
+            ], 200);
+        } else {
             return response()->json([
                 'mensaje' => 'La factura no se ha sido actualizado',
                 'error' => $resultado,
                 'status' => 422
-            ],422);
+            ], 422);
         }
     }
 
@@ -98,7 +97,7 @@ class FacturasController extends Controller
             $resultadoValidacion = $this->validarDatosFacturaObj($nuevaFactura);
 
             //Si es correcto, la factura se almacena en la base de datos
-            if ($resultadoValidacion === true){
+            if ($resultadoValidacion === true) {
                 $nuevaFactura->save();
 
                 //Se retorna una respuesta json
@@ -107,8 +106,7 @@ class FacturasController extends Controller
                     'mensaje' => 'Factura generada con éxito',
                     'status' => 200
                 ]);
-            }
-            else{
+            } else {
                 //Retorna el mensaje de error, del porque no s epuede almacenar.
                 return response()->json([
                     'error' => $resultadoValidacion,
@@ -116,7 +114,6 @@ class FacturasController extends Controller
                     'status' => 500
                 ]);
             }
-
         } catch (\Exception $e) {
             return response()->json([
                 'data' => $nuevaFactura,
@@ -160,59 +157,62 @@ class FacturasController extends Controller
         ]);
 
         if ($validator->fails()) {
-            return [
+            return response()->json([
                 'bool' => false,
                 'mensaje' => 'El monto no es tipo numeric.',
                 'status' => 500
-            ];
+            ]);
         } else {
 
-            $factura = Facturas::findOrFail($consecutivo);
+            $factura = Facturas::find($consecutivo);
 
             if ($factura) {
+
                 $montoPendiente = $factura->saldo_restante;
 
-                if ($montoAbonar > $montoPendiente) {
-                    return [
-                        'bool' => false,
-                        'mensaje' => 'Error, el monto a abonar, no puede ser mayor al saldo pendiente',
-                        'status' => 500
-                    ];
+                if ($accion === 'suma') {
+                    $nuevoMontoPendiente = $montoPendiente + $montoAbonar;
+
+                    $factura->saldo_restante = $nuevoMontoPendiente;
+                    $factura->update();
+
+                    return response()->json([
+                        'bool' => true,
+                        'data' => $factura,
+                        'mensaje' => 'Se actualizó el monto restante',
+                        'status' => 200
+                    ]);
                 } else {
 
-                    if ($accion === 'suma') {
+                    if ($montoAbonar > $montoPendiente) {
+                        return response()->json([
+                            'bool' => false,
+                            'mensaje' => 'Error, el monto a abonar, no puede ser mayor al saldo pendiente',
+                            'status' => 500
+                        ]);
 
-                        $nuevoMontoPendiente = $montoPendiente + $montoAbonar;
-
-                        $factura->saldo_restante = $nuevoMontoPendiente;
-
-                        return [
-                            'bool' => true,
-                            'data' => $factura,
-                            'mensaje' => 'Se actualizó el monto restante',
-                            'status' => 200
-                        ];
-                    }
-                    else{
-
+                    } else {
                         $nuevoMontoPendiente = $montoPendiente - $montoAbonar;
 
-                        $factura->saldo_restante = $nuevoMontoPendiente;
 
-                        return [
+
+                        $factura->saldo_restante = $nuevoMontoPendiente;
+                        $factura->update();
+
+                        return response()->json([
                             'bool' => true,
                             'data' => $factura,
                             'mensaje' => 'Se actualizó el monto restante',
                             'status' => 200
-                        ];
+                        ]);
                     }
                 }
             } else {
-                return [
+                return response()->json([
                     'bool' => false,
                     'mensaje' => 'Factura no encontrada',
                     'status' => 404
-                ];
+                ]);
             }
         }
     }
