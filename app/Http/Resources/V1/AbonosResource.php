@@ -16,7 +16,8 @@ class AbonosResource extends JsonResource{
             'metodo_pago' => $this->metodo_pago,
             'comentarios' => $this->comentarios,
             'estado' => $this->estado,
-            'cajero' => $this->cajero
+            'cajero' => $this->cajero,
+            'created_at' => $this->created_at
         ];
     }
 
