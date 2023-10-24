@@ -21,7 +21,6 @@ class ProductosController extends Controller
      */
     public function registrarProducto(Request $request)
     {
-
         try {
 
             $validador = $this->validarDatos($request);
