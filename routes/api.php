@@ -8,6 +8,8 @@ use App\Http\Controllers\Api\V1\MedicionesController;
 use App\Http\Controllers\Api\V1\EmpresasController;
 use App\Http\Controllers\Api\V1\OrdenPedidoController;
 use App\Http\Controllers\Api\V1\ProductosController;
+use App\Http\Controllers\Api\V1\ProveedoresController;
+use App\Http\Controllers\Api\V1\ProductosProveedoresController;
 
 
 use function Ramsey\Uuid\v1;
@@ -81,11 +83,23 @@ Route::post('v1/ordenes/editar/{id_orden}', [App\Http\Controllers\Api\V1\OrdenPe
 Route::post('v1/ordenes/editar/estado/{id_orden}', [App\Http\Controllers\Api\V1\OrdenPedidoController::class, 'actualizarEstadoPedido'])->middleware('jwt.auth');
 Route::post('v1/ordenes/anular/{id_orden}', [App\Http\Controllers\Api\V1\OrdenPedidoController::class, 'anularOrden'])->middleware('jwt.auth');
 
-/*************** */
+/**************** */
 //Ruta de abonos
 Route::apiResource('v1/pagos', AbonosController::class)->only((['index']))->middleware('jwt.auth');
 Route::get('v1/pagos/{id_factura}', [App\Http\Controllers\Api\V1\AbonosController::class, 'abonosPorFactura'])->middleware('jwt.auth');
 Route::post('v1/pagos/registrar', [App\Http\Controllers\Api\V1\AbonosController::class, 'crearAbono'])->middleware('jwt.auth');
 Route::post('v1/pagos/anular', [App\Http\Controllers\Api\V1\AbonosController::class, 'anularAbono'])->middleware('jwt.auth');
 
+/**************** */
+//Ruta de proveedores
+Route::apiResource('v1/proveedores', ProveedoresController::class)->only((['index']))->middleware('jwt.auth');
+Route::get('v1/proveedor/{proveedor_id}', [App\Http\Controllers\Api\V1\ProveedoresController::class, 'obtenerProveedor'])->middleware('jwt.auth');
+Route::post('v1/proveedores/registrar', [App\Http\Controllers\Api\V1\ProveedoresController::class, 'registrarProveedor'])->middleware('jwt.auth');
+Route::post('v1/proveedor/{proveedor_id}', [App\Http\Controllers\Api\V1\ProveedoresController::class, 'modificarProveedor'])->middleware('jwt.auth');
+Route::delete('v1/proveedor/eliminar/{proveedor_id}', [App\Http\Controllers\Api\V1\ProveedoresController::class, 'eliminarProveedor'])->middleware('jwt.auth');
 
+/**************** */
+//Ruta de productos de proveedores
+Route::post('v1/productos/proveedores', [App\Http\Controllers\Api\V1\ProductosProveedoresController::class, 'crearProductos'])->middleware('jwt.auth');
+Route::post('v1/producto/{producto_id}/proveedores', [App\Http\Controllers\Api\V1\ProductosProveedoresController::class, 'modificarProducto'])->middleware('jwt.auth');
+Route::delete('v1/producto/eliminar/{producto_id}/proveedores', [App\Http\Controllers\Api\V1\ProductosProveedoresController::class, 'eliminarProducto'])->middleware('jwt.auth');
