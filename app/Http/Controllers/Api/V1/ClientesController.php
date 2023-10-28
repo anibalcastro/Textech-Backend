@@ -5,9 +5,10 @@ namespace App\Http\Controllers\Api\V1;
 use App\Models\Clientes;
 use App\Models\Mediciones;
 use Illuminate\Http\Request;
-use App\Http\Resources\V1\ClientesResource;
+use Illuminate\Support\Facades\DB;
 use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\Validator;
+use App\Http\Resources\V1\ClientesResource;
 
 class ClientesController extends Controller
 {
@@ -51,36 +52,43 @@ class ClientesController extends Controller
         //Validación de los datos.
         $validador = $this->validateData($request);
 
-        if ($validador) {
 
 
-            //Se crea el nuevo cliente
-            $cliente = Clientes::create($request->all());
+        if ($validador && $request->input('nombre') && $request->input('nombre') !== 'undefined' && trim($request->input('nombre')) !== '') {
 
-            //Se almacena en la base de datos
-            $result = $cliente->save();
+            DB::beginTransaction(); // Inicia una transacción
 
-            if ($result) {
-                //Retorna una respuesta positiva.
+            try {
+                // Se crea el nuevo cliente
+                $cliente = Clientes::create($request->all());
+
+                // Se almacena en la base de datos
+                DB::commit(); // Confirma la transacción
+
+                // Retorna una respuesta positiva.
                 return response()->json([
-                    'data' => $request->all(),
-                    'mensaje' => 'Cliente creado con exito',
+                    'data' => $cliente,
+                    'mensaje' => 'Cliente creado con éxito',
                     'status' => 200
                 ], 200);
-            } else {
+            } catch (\Exception $e) {
+                DB::rollBack(); // Revierte la transacción en caso de error
+
+                // Manejo de errores
                 return response()->json([
-                    'mensaje' => 'Error',
-                    'status' => 404
-                ], 404);
+                    'mensaje' => 'Error al crear el cliente: ' . $e->getMessage(),
+                    'status' => 500
+                ], 500);
             }
-        }
-        else{
+        } else {
+            // Retorna un mensaje de error si la validación falla
             return response()->json([
-                'mensaje' => 'Error',
+                'mensaje' => 'Error, el nombre no puede estar vacío o ser undefined',
                 'status' => 422,
                 'error' => $validador
-            ],422);
+            ], 422);
         }
+
     }
 
     public function eliminarCliente($id_cliente)

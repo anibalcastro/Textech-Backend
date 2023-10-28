@@ -56,7 +56,7 @@ class ProductosProveedoresController extends Controller
                 if ($contadorAgregados == count($productoValido)) {
                     return response()->json([
                         'mensaje' => 'Productos agregados exitosamente',
-                        'data' => 200
+                        'status' => 200
                     ]);
                 } else {
                     return response()->json([
