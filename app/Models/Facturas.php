@@ -11,6 +11,7 @@ class Facturas extends Model
 
     protected $fillable = [
         'orden_id',
+        'reparacion_id',
         'empresa_id',
         'subtotal',
         'iva',
