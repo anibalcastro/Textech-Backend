@@ -10,6 +10,8 @@ use App\Http\Controllers\Api\V1\OrdenPedidoController;
 use App\Http\Controllers\Api\V1\ProductosController;
 use App\Http\Controllers\Api\V1\ProveedoresController;
 use App\Http\Controllers\Api\V1\ProductosProveedoresController;
+use App\Http\Controllers\Api\V1\ReparacionController;
+
 
 
 use function Ramsey\Uuid\v1;
@@ -103,3 +105,15 @@ Route::delete('v1/proveedor/eliminar/{proveedor_id}', [App\Http\Controllers\Api\
 Route::post('v1/productos/proveedores', [App\Http\Controllers\Api\V1\ProductosProveedoresController::class, 'crearProductos'])->middleware('jwt.auth');
 Route::post('v1/producto/{producto_id}/proveedores', [App\Http\Controllers\Api\V1\ProductosProveedoresController::class, 'modificarProducto'])->middleware('jwt.auth');
 Route::delete('v1/producto/eliminar/{producto_id}/proveedores', [App\Http\Controllers\Api\V1\ProductosProveedoresController::class, 'eliminarProducto'])->middleware('jwt.auth');
+
+/**************** */
+//Ruta de reparaciones
+Route::apiResource('v1/reparaciones', ReparacionController::class)->only((['index']))->middleware('jwt.auth');
+Route::get('v1/reparacion/{reparacion_id}', [App\Http\Controllers\Api\V1\ReparacionController::class, 'reparacionDetalleFactura'])->middleware('jwt.auth');
+Route::get('v1/reparaciones/cantidad' , [App\Http\Controllers\Api\V1\ReparacionController::class, 'cantidadReparacion'])->middleware('jwt.auth');
+Route::post('v1/reparacion/registrar',[App\Http\Controllers\Api\V1\ReparacionController::class, 'crearReparacion'])->middleware('jwt.auth');
+Route::post('v1/reparacion/editar/{reparacion_id}',[App\Http\Controllers\Api\V1\ReparacionController::class, 'modificarReparacion'])->middleware('jwt.auth');
+Route::post('v1/reparacion/estado/editar/{reparacion_id}',[App\Http\Controllers\Api\V1\ReparacionController::class, 'actualizarEstadoReparacion'])->middleware('jwt.auth');
+Route::post('v1/reparacion/anular/{reparacion_id}',[App\Http\Controllers\Api\V1\ReparacionController::class, 'anularReparacion'])->middleware('jwt.auth');
+
+
