@@ -24,10 +24,15 @@ class FacturasController extends Controller
     {
     }
 
-    public function modificarFactura($orden_id, $monto, $subtotal, $iva)
+    public function modificarFactura($id, $monto, $subtotal, $iva, $columna)
     {
+        if($columna == "orden_id"){
+            $factura = Facturas::where('orden_id', $id)->first();
+        }
+        else{
+            $factura = Facturas::where('reparacion_id', $id)->first();
+        }
 
-        $factura = Facturas::where('orden_id', $orden_id)->first();
 
         if (!$factura) {
             return response()->json([
@@ -35,8 +40,6 @@ class FacturasController extends Controller
                 'status' => 404
             ], 404);
         }
-
-        // dd($factura);
 
         $saldo_restante_actual = $factura->saldo_restante;
         $monto_anterior = $factura->monto;
@@ -82,6 +85,7 @@ class FacturasController extends Controller
 
             //Se llena el objeto
             $nuevaFactura->orden_id = $factura->order_id;
+            $nuevaFactura->reparacion_id = $factura->reparacion_id;
             $nuevaFactura->empresa_id = $factura->empresa_id;
             $nuevaFactura->subtotal = $factura->subtotal;
             $nuevaFactura->iva = $factura->iva;
@@ -301,7 +305,8 @@ class FacturasController extends Controller
     {
         // Define las reglas de validación para los campos de la factura
         $reglas = [
-            'orden_id' => 'required|integer',
+            'orden_id' => 'integer|nullable',
+            'reparacion_id' => 'integer|nullable',
             'empresa_id' => 'required|integer',
             'subtotal' => 'required|numeric',
             'iva' => 'required|numeric',

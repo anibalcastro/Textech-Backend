@@ -95,7 +95,8 @@ class OrdenPedidoController extends Controller
 
                     $objFactura = new Facturas();
                     $objFactura->order_id = $idOrden;
-                    $objFactura->empresa_id = $factura[0]['id_empresa'];;
+                    $objFactura->reparacion_id = null;
+                    $objFactura->empresa_id = $factura[0]['id_empresa'];
                     $objFactura->subtotal = $factura[0]['subtotal'];
                     $objFactura->iva = $factura[0]['iva'];
                     $objFactura->monto = $factura[0]['monto'];
@@ -258,7 +259,7 @@ class OrdenPedidoController extends Controller
             $nuevoIva = $data["orden"]["factura"][0]['iva'];
 
             //Id orden, monto, subtotal, iva
-            $modificacionFactura = $facturaController->modificarFactura($id_orden, $nuevoMonto, $nuevoSubtotal, $nuevoIva);
+            $modificacionFactura = $facturaController->modificarFactura($id_orden, $nuevoMonto, $nuevoSubtotal, $nuevoIva, "orden_id");
 
 
             $resultadoFactura = $modificacionFactura->getData();
