@@ -183,6 +183,7 @@ class ClientesController extends Controller
         }
     }
 
+    /**Cantidad de clientes */
     public function cantidadClientes(){
         $clientes = Clientes::all();
 
