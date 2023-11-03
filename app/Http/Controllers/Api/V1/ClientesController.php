@@ -183,6 +183,24 @@ class ClientesController extends Controller
         }
     }
 
+    public function cantidadClientes(){
+        $clientes = Clientes::all();
+
+        if($clientes){
+            $cantidad = count($clientes);
+
+            return response()->json([
+                'cantidad' => $cantidad,
+                'status' => 200
+            ], 200);
+        } else {
+            return response()->json([
+                'message' => 'No se encontraron clientes',
+                'status' => 404
+            ], 404);
+        }
+    }
+
 
 
     /**
