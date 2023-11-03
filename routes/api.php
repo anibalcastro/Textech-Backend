@@ -38,6 +38,7 @@ Route::post('v1/clientes/registrar', [App\Http\Controllers\Api\V1\ClientesContro
 Route::post('v1/clientes/editar/{id}', [App\Http\Controllers\Api\V1\ClientesController::class, 'modificarCliente'])->middleware('jwt.auth');
 Route::post('v1/clientes/{id}', [App\Http\Controllers\Api\V1\ClientesController::class, 'obtenerCliente'])->middleware('jwt.auth');
 Route::post('v1/clientes/eliminar/{id_cliente}', [App\Http\Controllers\Api\V1\ClientesController::class, 'eliminarCliente'])->middleware('jwt.auth');
+Route::get('v1/clientes/cantidad', [App\Http\Controllers\Api\V1\ClientesController::class, 'cantidadClientes'])->middleware('jwt.auth');
 
 /***************** */
 
@@ -49,6 +50,7 @@ Route::post('v1/mediciones/editar/{id}', [App\Http\Controllers\Api\V1\Mediciones
 Route::post('v1/mediciones/{id_cliente}', [App\Http\Controllers\Api\V1\MedicionesController::class, 'retornarMedicionesCliente'])->middleware('jwt.auth');
 Route::get ('v1/mediciones/clientes', [App\Http\Controllers\Api\V1\MedicionesController::class, 'show'])->middleware('jwt.auth');
 Route::post('v1/mediciones/eliminar/{id_medicion}',[App\Http\Controllers\Api\V1\MedicionesController::class, 'eliminarMedida'])->middleware('jwt.auth');
+Route::get ('v1/mediciones/cantidad', [App\Http\Controllers\Api\V1\MedicionesController::class, 'cantidadMedidas'])->middleware('jwt.auth');
 /***************** */
 
 /***************** */
