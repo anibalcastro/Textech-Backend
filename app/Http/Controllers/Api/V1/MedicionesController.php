@@ -237,6 +237,25 @@ class MedicionesController extends Controller
         }
     }
 
+    /**Función para obtener cantidad de mediciones */
+    public function cantidadMedidas(){
+        $mediciones = Mediciones::all();
+
+        if($mediciones){
+            $cantidad = count($mediciones);
+
+            return response()->json([
+                'cantidad' => $cantidad,
+                'status' => 200
+            ], 200);
+        } else {
+            return response()->json([
+                'message' => 'No se encontraron mediciones',
+                'status' => 404
+            ], 404);
+        }
+    }
+
     /**
      * Funcion para validar los datos que vienen en el request.
      */
