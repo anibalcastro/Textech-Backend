@@ -88,6 +88,12 @@ Route::post('v1/ordenes/editar/estado/{id_orden}', [App\Http\Controllers\Api\V1\
 Route::post('v1/ordenes/anular/{id_orden}', [App\Http\Controllers\Api\V1\OrdenPedidoController::class, 'anularOrden'])->middleware('jwt.auth');
 
 /**************** */
+//Ruta de Facturas
+Route::get('v1/facturas', [App\Http\Controllers\Api\V1\FacturasController::class, 'consultarFacturas'])->middleware('jwt.auth');
+Route::get('v1/facturas/ordenes', [App\Http\Controllers\Api\V1\FacturasController::class, 'consultarFacturasOrden'])->middleware('jwt.auth');
+Route::get('v1/facturas/reparaciones', [App\Http\Controllers\Api\V1\FacturasController::class, 'consultarFacturasReparacion'])->middleware('jwt.auth');
+
+/**************** */
 //Ruta de abonos
 Route::apiResource('v1/pagos', AbonosController::class)->only((['index']))->middleware('jwt.auth');
 Route::get('v1/pagos/{id_factura}', [App\Http\Controllers\Api\V1\AbonosController::class, 'abonosPorFactura'])->middleware('jwt.auth');

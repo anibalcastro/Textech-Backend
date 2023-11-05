@@ -3,6 +3,9 @@
 namespace App\Http\Controllers\Api\V1;
 
 use App\Models\Facturas;
+use App\Models\OrdenPedido;
+use App\Models\Empresas;
+use App\Models\ReparacionPrendas;
 use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\Validator;
 use App\Http\Resources\V1\FacturasResource;
@@ -26,10 +29,9 @@ class FacturasController extends Controller
 
     public function modificarFactura($id, $monto, $subtotal, $iva, $columna)
     {
-        if($columna == "orden_id"){
+        if ($columna == "orden_id") {
             $factura = Facturas::where('orden_id', $id)->first();
-        }
-        else{
+        } else {
             $factura = Facturas::where('reparacion_id', $id)->first();
         }
 
@@ -194,7 +196,6 @@ class FacturasController extends Controller
                             'mensaje' => 'Error, el monto a abonar, no puede ser mayor al saldo pendiente',
                             'status' => 500
                         ]);
-
                     } else {
                         $nuevoMontoPendiente = $montoPendiente - $montoAbonar;
 
@@ -296,6 +297,84 @@ class FacturasController extends Controller
             'mensaje' => "No existen facturas de esa empresa...",
             'status' => 404
         ]);
+    }
+
+    public function consultarFacturasOrden()
+    {
+        $facturas = Facturas::select('facturas.id', 'facturas.orden_id', 'orden_pedido.titulo', 'empresas.nombre_empresa', 'orden_pedido.estado', 'orden_pedido.fecha_orden', 'facturas.monto')
+            ->join('orden_pedido', 'orden_pedido.id', '=', 'facturas.orden_id')
+            ->join('empresas', 'empresas.id', '=', 'facturas.empresa_id')
+            ->get();
+
+        if ($facturas) {
+            return response()->json([
+                'data' => $facturas,
+                'mensajes' => 'Proceso ejecutado correctamente',
+                'status' => 200
+            ], 200);
+        } else {
+            return response()->json([
+                'data' => [],
+                'mensaje' => 'No se han encontrado facturas para las ordenes',
+                'status' => 422
+            ], 422);
+        }
+    }
+
+    public function consultarFacturasReparacion()
+    {
+        $facturasReparaciones = Facturas::select('facturas.id', 'facturas.reparacion_id', 'reparacion_prendas.titulo', 'empresas.nombre_empresa', 'reparacion_prendas.estado', 'reparacion_prendas.fecha', 'facturas.monto')
+            ->join('reparacion_prendas', 'reparacion_prendas.id', '=', 'facturas.reparacion_id')
+            ->join('empresas', 'empresas.id', '=', 'facturas.empresa_id')
+            ->get();
+
+        if ($facturasReparaciones) {
+            return response()->json([
+                'data' => $facturasReparaciones,
+                'mensajes' => 'Proceso ejecutado correctamente',
+                'status' => 200
+            ], 200);
+        } else {
+            return response()->json([
+                'data' => [],
+                'mensaje' => 'No se han encontrado facturas para las reparaciones',
+                'status' => 422
+            ], 422);
+        }
+    }
+
+    public function consultarFacturas()
+    {
+        $facturasReparaciones = Facturas::select('facturas.id', 'facturas.reparacion_id', 'reparacion_prendas.titulo', 'empresas.nombre_empresa', 'reparacion_prendas.estado', 'reparacion_prendas.fecha', 'facturas.monto')
+            ->join('reparacion_prendas', 'reparacion_prendas.id', '=', 'facturas.reparacion_id')
+            ->join('empresas', 'empresas.id', '=', 'facturas.empresa_id')
+            ->get();
+
+        $facturasOrdenes = Facturas::select('facturas.id', 'facturas.orden_id', 'orden_pedido.titulo', 'empresas.nombre_empresa', 'orden_pedido.estado', 'orden_pedido.fecha_orden', 'facturas.monto')
+        ->join('orden_pedido', 'orden_pedido.id', '=', 'facturas.orden_id')
+        ->join('empresas', 'empresas.id', '=', 'facturas.empresa_id')
+        ->get();
+
+        $facturas = [];
+
+        foreach ($facturasReparaciones as $factura) {
+            $facturas[] = $factura;
+        }
+
+        foreach ($facturasOrdenes as $factura) {
+            $facturas[] = $factura;
+        }
+
+        // Ordenar por el campo 'id' de manera descendente
+        $facturas = collect($facturas)->sortByDesc('id')->values()->all();
+
+        return response()->json([
+            'data' => $facturas,
+            'mensaje' => 'Facturas encontradas',
+            'status' => 200
+        ],200);
+
+
     }
 
     /**
