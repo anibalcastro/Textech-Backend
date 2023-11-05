@@ -88,7 +88,6 @@ class ClientesController extends Controller
                 'error' => $validador
             ], 422);
         }
-
     }
 
     public function eliminarCliente($id_cliente)
@@ -184,22 +183,27 @@ class ClientesController extends Controller
     }
 
     /**Cantidad de clientes */
-    public function cantidadClientes(){
-        $clientes = Clientes::all();
+    public function cantidadClientes()
+    {
+        $cantidad = Clientes::count();
 
-        if($clientes){
-            $cantidad = count($clientes);
+        return response()->json([
+            'cantidad_clientes' => $cantidad,
+            'status' => 200
+        ], 200);
+    }
 
-            return response()->json([
-                'cantidad' => $cantidad,
-                'status' => 200
-            ], 200);
-        } else {
-            return response()->json([
-                'message' => 'No se encontraron clientes',
-                'status' => 404
-            ], 404);
+
+    public function cantidad()
+    {
+        $dbClientes = ClientesResource::collection(Clientes::all());
+        $cantidadCliente = 0;
+
+        foreach ($dbClientes as $cliente) {
+            $cantidadCliente++;
         }
+
+        dd($cantidadCliente);
     }
 
 

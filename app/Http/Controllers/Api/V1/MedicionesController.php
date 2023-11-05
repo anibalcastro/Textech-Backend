@@ -51,33 +51,33 @@ class MedicionesController extends Controller
     }
 
     public function eliminarMedida($id_medicion)
-{
-    try {
-        // Validar los datos del request si es necesario
+    {
+        try {
+            // Validar los datos del request si es necesario
 
-        // Verificar si la medida existe en la base de datos
-        $medida = Mediciones::find($id_medicion);
-        if (!$medida) {
+            // Verificar si la medida existe en la base de datos
+            $medida = Mediciones::find($id_medicion);
+            if (!$medida) {
+                return response()->json([
+                    'mensaje' => 'La medida no existe',
+                    'status' => 404
+                ]);
+            }
+
+            // Eliminar la medida
+            $medida->delete();
+
             return response()->json([
-                'mensaje' => 'La medida no existe',
-                'status' => 404
+                'mensaje' => 'Medida eliminada correctamente',
+                'status' => 200
             ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'error' => $e,
+                'mensaje' => 'Error al eliminar la medida'
+            ], 500);
         }
-
-        // Eliminar la medida
-        $medida->delete();
-
-        return response()->json([
-            'mensaje' => 'Medida eliminada correctamente',
-            'status' => 200
-        ]);
-    } catch (\Exception $e) {
-        return response()->json([
-            'error' => $e,
-            'mensaje' => 'Error al eliminar la medida'
-        ], 500);
     }
-}
 
 
     /**
@@ -96,7 +96,7 @@ class MedicionesController extends Controller
 
             if ($existeMedida) {
                 return response()->json([
-                    'mensaje' => "Error, ya existen medidas del cliente para el artículo " . $request->articulo,'status'=> 300,
+                    'mensaje' => "Error, ya existen medidas del cliente para el artículo " . $request->articulo, 'status' => 300,
                 ], 404);
             } else {
                 // Crea el registro
@@ -238,22 +238,12 @@ class MedicionesController extends Controller
     }
 
     /**Función para obtener cantidad de mediciones */
-    public function cantidadMedidas(){
-        $mediciones = Mediciones::all();
-
-        if($mediciones){
-            $cantidad = count($mediciones);
-
-            return response()->json([
-                'cantidad' => $cantidad,
-                'status' => 200
-            ], 200);
-        } else {
-            return response()->json([
-                'message' => 'No se encontraron mediciones',
-                'status' => 404
-            ], 404);
-        }
+    public function cantidadMediciones(){
+        $cantidad = Mediciones::count();
+        return response()->json([
+            'cantidad_mediciones' => $cantidad,
+            'status' => 200
+        ],200);
     }
 
     /**
