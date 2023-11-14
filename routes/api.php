@@ -127,3 +127,5 @@ Route::post('v1/reparacion/estado/editar/{reparacion_id}',[App\Http\Controllers\
 Route::post('v1/reparacion/anular/{reparacion_id}',[App\Http\Controllers\Api\V1\ReparacionController::class, 'anularReparacion'])->middleware('jwt.auth');
 
 
+Route::get('v1/mostrar-inventario', [App\Http\Controllers\Api\V1\InventarioController::class, 'mostrarInventario']);
+Route::get('v1/mostrar-clientes', [App\Http\Controllers\Api\V1\ClientesController::class, 'reporteClientes']);
