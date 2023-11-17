@@ -17,7 +17,7 @@ class InventarioController extends Controller
      */
     public function index()
     {
-        return InventarioResource::collection(Inventario::all())->latest();
+        return InventarioResource::collection(Inventario::latest()->get());
     }
 
     /**Entradas de inventario */
@@ -28,34 +28,61 @@ class InventarioController extends Controller
             $mensajes = [];
             $inventario = [];
 
-            foreach ($data as $item) {
-                $nombre_producto = $item['nombre_producto'];
+            if (count($data) > 1) {
 
-                $validarExistencia = $this->validarExistencia($nombre_producto);
+                foreach ($data as $item) {
+                    $item['cantidad'] = round($item['cantidad'], 2);
+                    $nombre_producto = $item['nombre_producto'];
 
-                if ($validarExistencia == true) {
-                    //Modificar entrada
-                    $resultadoModificacion = $this->modificarEntradas($item);
-                    if ($resultadoModificacion !== true) {
-                        $mensaje[] = $resultadoModificacion;
-                        $inventario[] = $item;
+
+                    $validarExistencia = $this->validarExistencia($nombre_producto);
+
+                    if ($validarExistencia == true) {
+                        // Modificar entrada
+                        $resultadoModificacion = $this->modificarEntradas($item);
+                        if ($resultadoModificacion !== true) {
+                            $mensajes[] = $resultadoModificacion;
+                            $inventario[] = $item;
+                        }
+                    } else {
+                        // Agregar un nuevo inventario
+                        $resultadoRegistro = $this->registrarInventario($item);
+                        if ($resultadoRegistro !== true) {
+                            $mensajes[] = $resultadoRegistro;
+                            $inventario[] = $item;
+                        }
                     }
-                } else {
-                    //Agregar un nuevo inventario
-                    $resultadoRegistro = $this->registrarInventario($item);
-                    if ($resultadoRegistro !== true) {
-                        $mensaje[] = $resultadoRegistro;
-                        $inventario[] = $item;
+                }
+            } else {
+                $item = $data[0] ?? null;
+
+                if ($item) {
+                    $nombre_producto = $item['nombre_producto'];
+
+                    $validarExistencia = $this->validarExistencia($nombre_producto);
+
+                    if ($validarExistencia == true) {
+                        // Modificar entrada
+                        $resultadoModificacion = $this->modificarEntradas($item);
+                        if ($resultadoModificacion !== true) {
+                            $mensajes[] = $resultadoModificacion;
+                            $inventario[] = $item;
+                        }
+                    } else {
+                        // Agregar un nuevo inventario
+                        $resultadoRegistro = $this->registrarInventario($item);
+                        if ($resultadoRegistro !== true) {
+                            $mensajes[] = $resultadoRegistro;
+                            $inventario[] = $item;
+                        }
                     }
                 }
             }
 
-
-            if (count($inventario) > 1) {
+            if (!empty($mensajes)) {
                 return response()->json([
-                    'mensaje' => 'Hubo inventarios que no se registraron las entradas',
-                    'inventario' => $inventario,
-                    'error' => $mensajes,
+                    'mensaje' => 'Hubo errores al procesar las entradas de inventario',
+                    'errores' => $mensajes,
                     'status' => 422
                 ], 422);
             }
@@ -64,7 +91,7 @@ class InventarioController extends Controller
                 'mensaje' => 'Se registraron las entradas exitosamente',
                 'status' => 200
             ], 200);
-        } catch (Exception $e) {
+        } catch (\Exception $e) {
             return response()->json([
                 'mensaje' => 'Error',
                 'error' => $e->getMessage(),
@@ -77,19 +104,30 @@ class InventarioController extends Controller
     public function salidas(Request $request)
     {
         try {
-            $inventarioSalida = json_decode($request->getContent(), true);
+            $data = json_decode($request->getContent(), true);
             $mensajes = [];
             $inventario = [];
 
-            foreach ($inventarioSalida as $item) {
-                $resultadoSalida = $this->modificarSalida($item);
+            if(count($data) > 1){
+                foreach ($data as $item) {
+                    $resultadoSalida = $this->modificarSalida($item);
+                    if ($resultadoSalida !== true) {
+                        $mensajes[] = $resultadoSalida;
+                        $inventario[] = $item;
+                    }
+                }
+            }
+            else{
+                $resultadoSalida = $this->modificarSalida($data);
+
                 if ($resultadoSalida !== true) {
                     $mensajes[] = $resultadoSalida;
-                    $inventario[] = $item;
+                    $inventario[] = $data;
                 }
             }
 
-            if (count($inventario) > 1) {
+
+            if (count($inventario) >= 1 || count($mensajes) >= 1) {
                 return response()->json([
                     'mensaje' => 'Hubo inventarios que no se registraron las salidas',
                     'inventario' => $inventario,
@@ -116,11 +154,11 @@ class InventarioController extends Controller
     {
         $inventario = Inventario::where('nombre_producto', $nombre_producto)->get();
 
-        if ($inventario) {
-            return true;
+        if ($inventario->isEmpty()) {
+            return false;
         }
 
-        return false;
+        return true;
     }
 
     /**Funcion para registrar inventario nuevo */
@@ -132,64 +170,84 @@ class InventarioController extends Controller
             return $validarDatos;
         }
 
-        $registrarInventario = Inventario::create($request);
-        $resultado = $registrarInventario->save();
+        // Utiliza los datos directamente desde la solicitud
+        $datosInventario = $request;
 
-        if ($resultado) {
+        // Crea un nuevo registro de Inventario con los datos validados
+        $registrarInventario = Inventario::create($datosInventario);
+
+        // Verifica si la creación fue exitosa
+        if ($registrarInventario) {
             return true;
         } else {
-            return $resultado;
+            return $registrarInventario; // Aquí puedes devolver más detalles sobre el error si lo deseas
         }
     }
 
     /**Funcion para modificar entradas de inventario, en caso que el producto ya exista */
     public function modificarEntradas($request)
     {
+        $item = $request;
+        $inventario = Inventario::where('nombre_producto', $item['nombre_producto'])->first();
+        $validarCantidad = $this->validarCantidad(['cantidad' => $item['cantidad']]);
 
-        $item = $request[0];
-        $inventario = Inventario::where('nombre_producto', $item['nombre_producto'])->get();
-        $validarCantidad = $this->validarCantidad($item['cantidad']);
         if ($validarCantidad === true) {
             $cantidadAntes = $inventario->cantidad;
             $nuevaCantidad = $item['cantidad'];
 
             $cantidad = round($cantidadAntes + $nuevaCantidad, 2);
 
-            $resultado = $inventario::update(['cantidad' => $cantidad]);
+            // Actualizar la instancia del modelo
+            $inventario->cantidad = $cantidad;
+            $resultado = $inventario->save();
 
             if ($resultado) {
                 return true;
             } else {
-                return $resultado;
+                return 'Error al actualizar la cantidad en el inventario.';
             }
         } else {
             return $validarCantidad;
         }
     }
 
+
     /**Funcion para modificar la salida de inventario del producto existente */
     public function modificarSalida($request)
     {
-        $item = $request[0];
-        $inventario = Inventario::where('nombre_producto', $item['nombre_producto'])->get();
+        $item = $request;
+        $nombre_producto = $this->obtenerNombreProducto($item);
+        $cantidad = $this->obtenerCantidadProducto($item);
+
+        $inventario = Inventario::where('nombre_producto', $nombre_producto)->first();
+
         if (!$inventario) {
             return 'El producto no existe en la base de datos';
         }
 
-        $validarCantidad = $this->validarCantidad($item['cantidad']);
+        $validarCantidad = $this->validarCantidad(['cantidad' => $cantidad]);
         if ($validarCantidad === true) {
             $cantidadAntes = $inventario->cantidad;
-            $nuevaCantidad = $item['cantidad'];
+            $nuevaCantidad = $cantidad;
 
-            $cantidad = round($cantidadAntes - $nuevaCantidad, 2);
+            if ($nuevaCantidad<= $cantidadAntes){
 
-            $resultado = $inventario::update(['cantidad' => $cantidad]);
+                $cantidad = round($cantidadAntes - $nuevaCantidad, 2);
 
-            if ($resultado) {
-                return true;
-            } else {
-                return $resultado;
+                $inventario->cantidad = $cantidad;
+                $resultado = $inventario->save();
+
+
+                if ($resultado) {
+                    return true;
+                } else {
+                    return $resultado;
+                }
             }
+            else{
+                return "La cantidad ingresada de salida del producto " . $nombre_producto . " es mayor a la existente.";
+            }
+
         } else {
             return $validarCantidad;
         }
@@ -200,7 +258,7 @@ class InventarioController extends Controller
     {
         try {
             $validador = $this->validateData($request->all());
-            $inventario = Inventario::find($id_inventario);
+            $inventario = Inventario::where("id",$id_inventario)->first();
 
 
             if (!$validador) {
@@ -217,21 +275,20 @@ class InventarioController extends Controller
                 ], 422);
             }
 
-            $nombre_producto = $request[0]['nombre_producto'];
-            $color = $request[0]['color'];
-            $id_categoria = $request[0]['id_categoria'];
-            $id_proveedor = $request[0]['id_proveedor'];
-            $comentario = $request[0]['comentario'];
+            $nombre_producto = $request['nombre_producto'];
+            $color = $request['color'];
+            $id_categoria = $request['id_categoria'];
+            $id_proveedor = $request['id_proveedor'];
+            $comentario = $request['comentario'];
 
-            $resultado = $inventario::update(
-                [
-                    'nombre_producto' => $nombre_producto,
-                    'color' => $color,
-                    'id_categoria' => $id_categoria,
-                    'id_proveedor' => $id_proveedor,
-                    'comentario' => $comentario
-                ]
-            );
+            $inventario->nombre_producto = $nombre_producto;
+            $inventario->color = $color;
+            $inventario->id_categoria = $id_categoria;
+            $inventario->id_proveedor = $id_proveedor;
+            $inventario->comentario = $comentario;
+
+
+            $resultado = $inventario->save();
 
             if ($resultado) {
                 return response()->json([
@@ -279,13 +336,9 @@ class InventarioController extends Controller
         return response()->json([
             'data' => $resultado,
             'status' => 200
-        ],200);
+        ], 200);
     }
 
-    /**Se genera un pdf de todo el inventario existente. */
-    public function generarPdf()
-    {
-    }
 
     /**Se envia el inventario total por medio de correo */
     public function notificarCorreo()
@@ -293,24 +346,24 @@ class InventarioController extends Controller
     }
 
     /**Funcion para validar que la cantidad ingresada sea correcta */
-    public function validarCantidad($cantidad)
+    public function validarCantidad($data)
     {
-        //Reglas
+        // Reglas
         $rules = [
             'cantidad' => 'required|numeric|between:0,15000.99'
         ];
 
-        //Mensajes
+        // Mensajes
         $messages = [
             'cantidad.required' => 'La cantidad es obligatoria.',
             'cantidad.numeric' => 'La cantidad debe ser un número.',
             'cantidad.between' => 'La cantidad debe estar entre :min y :max.',
         ];
 
-        //Validacion
-        $validator = Validator::make($cantidad, $rules, $messages);
+        // Validacion
+        $validator = Validator::make($data, $rules, $messages);
 
-        //Si la validación falla, muestra el error.
+        // Si la validación falla, muestra el error.
         if ($validator->fails()) {
             return $validator->errors()->all();
         }
@@ -364,5 +417,42 @@ class InventarioController extends Controller
 
         // Pasar los registros a la vista
         return view('inventario', ['inventario' => $inventario]);
+    }
+
+
+    private function obtenerNombreProducto($data)
+    {
+        if (is_array($data) && count($data) > 0) {
+            // Caso 1: Array indexado numéricamente
+            if (isset($data[0]['nombre_producto'])) {
+                return $data[0]['nombre_producto'];
+            }
+
+            // Caso 2: Array asociativo directo
+            if (isset($data['nombre_producto'])) {
+                return $data['nombre_producto'];
+            }
+        }
+
+        // En caso de que la estructura no sea reconocida o no haya datos válidos
+        return null; // O puedes lanzar una excepción, según tus necesidades
+    }
+
+    private function obtenerCantidadProducto($data)
+    {
+        if (is_array($data) && count($data) > 0) {
+            // Caso 1: Array indexado numéricamente
+            if (isset($data[0]['cantidad'])) {
+                return $data[0]['cantidad'];
+            }
+
+            // Caso 2: Array asociativo directo
+            if (isset($data['cantidad'])) {
+                return $data['cantidad'];
+            }
+        }
+
+        // En caso de que la estructura no sea reconocida o no haya datos válidos
+        return null; // O puedes lanzar una excepción, según tus necesidades
     }
 }
