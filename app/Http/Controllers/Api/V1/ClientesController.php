@@ -2,15 +2,11 @@
 
 namespace App\Http\Controllers\Api\V1;
 
-use Carbon\Carbon;
-use Dompdf\Dompdf;
-use Dompdf\Options;
 use App\Models\Clientes;
 use App\Models\Mediciones;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use App\Http\Controllers\Controller;
-use Illuminate\Support\Facades\View;
 use Illuminate\Support\Facades\Validator;
 use App\Http\Resources\V1\ClientesResource;
 
@@ -196,79 +192,6 @@ class ClientesController extends Controller
             'status' => 200
         ], 200);
     }
-
-
-    public function cantidad()
-    {
-        $dbClientes = ClientesResource::collection(Clientes::all());
-        $cantidadCliente = 0;
-
-        foreach ($dbClientes as $cliente) {
-            $cantidadCliente++;
-        }
-
-        dd($cantidadCliente);
-    }
-
-    public function reporteClientes()
-    {
-        // Obtener los clientes y la fecha actual
-        $clientes = Clientes::orderBy('empresa')->get();
-        $fechaActual = Carbon::now('America/Costa_Rica');
-
-        // Formatear números de teléfono
-        $clientes->transform(function ($cliente) {
-            $cliente->telefono = $this->formatearNumeroCelular($cliente->telefono);
-            return $cliente;
-        });
-
-        // Renderizar la vista Blade y obtener su contenido HTML
-        $html = View::make('clientes', [
-            'clientes' => $clientes,
-            'fechaActual' => $fechaActual,
-        ])->render();
-
-
-        $options = new Options();
-        $options->set('isHtml5ParserEnabled', true);
-
-        // Inicializar Dompdf
-        $dompdf = new Dompdf($options);
-
-        // Cargar el HTML en Dompdf
-        $dompdf->loadHtml($html);
-
-        // Establecer el tamaño del papel y la orientación
-        $dompdf->setPaper('A4', 'landscape');
-
-        $nombreArchivo = 'clientes_' . $fechaActual . '.pdf';
-
-        // Renderizar el PDF
-        $dompdf->render();
-
-        // Devolver el PDF al navegador
-        return $dompdf->stream($nombreArchivo);
-    }
-
-    private function formatearNumeroCelular($numero)
-    {
-        $numero = preg_replace('/[^\d]/', '', $numero);
-
-        if (strlen($numero) == 8) {
-            $numero = '506' . $numero;
-        }
-
-        if (strlen($numero) == 11 && strpos($numero, '506') === 0) {
-            $parte1 = substr($numero, 0, 3);
-            $parte2 = substr($numero, 3, 4);
-            $parte3 = substr($numero, 7, 4);
-
-            return "+$parte1 $parte2 $parte3";
-        } else {
-            return $numero;
-        }
-    }
-
 
 
     /**
