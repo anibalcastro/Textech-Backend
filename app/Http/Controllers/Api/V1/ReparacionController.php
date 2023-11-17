@@ -80,6 +80,8 @@ class ReparacionController extends Controller
 
                 $resultadoDetalles = $this->crearDetalleReparacion($detalles, $id_reparacion);
 
+                //dd($resultadoDetalles);
+
                 if ($resultadoDetalles === true) {
 
                     $objFactura = new Facturas();
@@ -171,6 +173,8 @@ class ReparacionController extends Controller
         foreach ($detalles as $detalle) {
             $detalle['id_reparacion'] = $id_reparacion;
             $validadorDatos = $this->validarDatosDetalle($detalle);
+
+            //dd($validadorDatos);
 
             if ($validadorDatos === true) {
                 $detalleValido[] = $detalle;
@@ -536,7 +540,7 @@ class ReparacionController extends Controller
             'id_producto' => 'required|exists:productos,id',
             'precio_unitario' => 'required|numeric|min:0',
             'cantidad' => 'required|integer|min:1',
-            'descripcion' => 'required|string|max:255',
+            'descripcion' => 'required|string|max:1000',
             'subtotal' => 'required|numeric|min:0'
         ];
 
