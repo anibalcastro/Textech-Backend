@@ -1,16 +1,19 @@
 <?php
 
 use App\Http\Controllers\Api\V1\AbonosController;
+use App\Http\Controllers\Api\V1\CategoriasController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Api\V1\ClientesController;
 use App\Http\Controllers\Api\V1\MedicionesController;
 use App\Http\Controllers\Api\V1\EmpresasController;
+use App\Http\Controllers\Api\V1\InventarioController;
 use App\Http\Controllers\Api\V1\OrdenPedidoController;
 use App\Http\Controllers\Api\V1\ProductosController;
 use App\Http\Controllers\Api\V1\ProveedoresController;
 use App\Http\Controllers\Api\V1\ProductosProveedoresController;
 use App\Http\Controllers\Api\V1\ReparacionController;
+use App\Http\Controllers\Api\V1\ReportesController;
 
 
 
@@ -126,6 +129,27 @@ Route::post('v1/reparacion/editar/{reparacion_id}',[App\Http\Controllers\Api\V1\
 Route::post('v1/reparacion/estado/editar/{reparacion_id}',[App\Http\Controllers\Api\V1\ReparacionController::class, 'actualizarEstadoReparacion'])->middleware('jwt.auth');
 Route::post('v1/reparacion/anular/{reparacion_id}',[App\Http\Controllers\Api\V1\ReparacionController::class, 'anularReparacion'])->middleware('jwt.auth');
 
+/**************** */
+//Categorias
+Route::apiResource('v1/categorias', CategoriasController::class)->only((['index']))->middleware('jwt.auth');
+Route::post('v1/categoria/registrar',[App\Http\Controllers\Api\V1\CategoriasController::class, 'registrarCategoria'])->middleware('jwt.auth');
+Route::delete('v1/categorias/eliminar/{id_categoria}',[App\Http\Controllers\Api\V1\CategoriasController::class, 'eliminarCategoria'])->middleware('jwt.auth');
 
-Route::get('v1/mostrar-inventario', [App\Http\Controllers\Api\V1\InventarioController::class, 'mostrarInventario']);
-Route::get('v1/mostrar-clientes', [App\Http\Controllers\Api\V1\ClientesController::class, 'reporteClientes']);
+/**************** */
+//Inventario
+Route::apiResource('v1/inventario', InventarioController::class)->only((['index']))->middleware('jwt.auth');
+Route::post('v1/inventario/registrar/entrada',[App\Http\Controllers\Api\V1\InventarioController::class, 'entradas'])->middleware('jwt.auth');
+Route::post('v1/inventario/registrar/salida',[App\Http\Controllers\Api\V1\InventarioController::class, 'salidas'])->middleware('jwt.auth');
+Route::post('v1/inventario/modificar/{id_inventario}',[App\Http\Controllers\Api\V1\InventarioController::class, 'modificarInventario'])->middleware('jwt.auth');
+Route::get('v1/inventario/cantidad',[App\Http\Controllers\Api\V1\InventarioController::class, 'cantidadInventario'])->middleware('jwt.auth');
+Route::get('v1/inventario/info',[App\Http\Controllers\Api\V1\InventarioController::class, 'inventario'])->middleware('jwt.auth');
+
+
+/**************** */
+//Reportes
+Route::get('v1/reporte-inventario', [ReportesController::class, 'reporteInventario'])->middleware('jwt.auth');
+Route::get('v1/reporte-clientes', [ReportesController::class, 'reporteClientes'])->middleware('jwt.auth');
+Route::get('v1/mediciones-clientes/{nombre_empresa}', [ReportesController::class, 'medidasClientes'])->middleware('jwt.auth');
+Route::get('v1/pdf/orden_pedido/{id_pedido}', [ReportesController::class, 'generarDetallePedido'])->middleware('jwt.auth');
+Route::get('v1/pdf/reparacion/{id_reparacion}', [ReportesController::class, 'generarDetalleReparacion'])->middleware('jwt.auth');
+Route::get('v1/pdf/pagos/{tipo}/{id}', [ReportesController::class, 'generarDetallePago'])->middleware('jwt.auth');
