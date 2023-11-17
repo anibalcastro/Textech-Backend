@@ -14,7 +14,7 @@ return new class extends Migration
         Schema::create('inventario', function (Blueprint $table){
             $table->id();
             $table->string('nombre_producto',100);
-            $table->decimal('cantidad',1000, 2);
+            $table->decimal('cantidad',65, 2);
             $table->string('color',20)->nullable();
             $table->unsignedBigInteger('id_categoria')->nullable();
             $table->unsignedBigInteger('id_proveedor')->nullable();
