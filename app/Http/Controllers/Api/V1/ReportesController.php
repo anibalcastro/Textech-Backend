@@ -338,11 +338,43 @@ class ReportesController extends Controller
     public function reporteInventario()
     {
         // Obtener todos los registros del inventario
-        $inventario = Inventario::all();
+        $inventario = DB::table('inventario as i')
+        ->select('i.id', 'i.nombre_producto', 'i.cantidad', 'i.color', 'c.nombre_categoria', 'p.nombre as nombre_proveedor', 'i.comentario')
+        ->join('categorias as c', 'c.id', '=', 'i.id_categoria')
+        ->join('proveedores as p', 'p.id', '=', 'i.id_proveedor')
+        ->get();
 
-        // Pasar los registros a la vista
-        return view('inventario', ['inventario' => $inventario]);
+        $fechaActual = Carbon::now('America/Costa_Rica');
+
+
+        // Renderizar la vista Blade y obtener su contenido HTML
+        $html = View::make('inventario', [
+            'inventario' => $inventario,
+            'fechaActual' => $fechaActual,
+        ])->render();
+
+
+        $options = new Options();
+        $options->set('isHtml5ParserEnabled', true);
+
+        // Inicializar Dompdf
+        $dompdf = new Dompdf($options);
+
+        // Cargar el HTML en Dompdf
+        $dompdf->loadHtml($html);
+
+        // Establecer el tamaño del papel y la orientación
+        $dompdf->setPaper('A4', 'landscape');
+
+        $nombreArchivo = 'Inventario ' . $fechaActual ;
+
+        // Renderizar el PDF
+        $dompdf->render();
+
+        // Devolver el PDF al navegador
+        return $dompdf->stream($nombreArchivo);
     }
+
 
     /**Formatea numero de telefono */
     private function formatearNumeroCelular($numero)

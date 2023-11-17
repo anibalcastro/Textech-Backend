@@ -116,7 +116,7 @@
                         <p class="descripcion">Reporte generado automáticamente</p>
                     </li>
                     <li>
-                        <strong><p class="descripcion">Reporte de clientes</p></strong>
+                        <strong><p class="descripcion">Reporte de mediciones de clientes</p></strong>
                     </li>
                 </ul>
             </div>
@@ -127,10 +127,9 @@
                 <tr>
                     <th>ID</th>
                     <th>Nombre</th>
-                    <th>Cédula</th>
-                    <th>Teléfono</th>
+                    <th>Prenda</th>
                     <th>Empresa</th>
-                    <th>Departamento</th>
+                    <th>Fecha</th>
                 </tr>
             </thead>
             <tbody>
@@ -143,10 +142,9 @@
                     <tr>
                         <td>{{ $contador }}</td>
                         <td>{{ $nombreCompleto }}</td>
-                        <td>{{ $item->cedula ?? '' }}</td>
-                        <td>{{ $item->telefono ?? '' }}</td>
+                        <td>{{ $item->articulo ?? '' }}</td>
                         <td>{{ $item->empresa ?? '' }}</td>
-                        <td>{{ $item->departamento ?? '' }}</td>
+                        <td>{{ $item->created_at ?? '' }}</td>
                     </tr>
                 @endforeach
             </tbody>
