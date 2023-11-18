@@ -12,6 +12,8 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\View;
+use Illuminate\Http\Response;
+
 
 class ReportesController extends Controller
 {
@@ -62,10 +64,12 @@ class ReportesController extends Controller
         $nombreArchivo = 'Reparacion ' . $reparacion->nombre_empresa;
 
         // Renderizar el PDF
-        $dompdf->render();
+        $pdf = $dompdf->render();
+
+        return response()->json(['data' => $pdf, 'status' => 200],200);
 
         // Devolver el PDF al navegador
-        return $dompdf->stream($nombreArchivo);
+        //$pdf =$dompdf->stream($nombreArchivo);
     }
 
     /**Funcion que genera el detalle del pedido */
@@ -289,9 +293,16 @@ class ReportesController extends Controller
 
         // Renderizar el PDF
         $dompdf->render();
+        //$dompdf->stream($nombreArchivo);
 
-        // Devolver el PDF al navegador
-        return $dompdf->stream($nombreArchivo);
+         // Obtener el contenido del PDF
+        $pdfContent = $dompdf->output();
+
+        // Devolver el PDF al navegador como respuesta HTTP
+        return new Response($pdfContent, 200, [
+            'Content-Type' => 'application/pdf',
+            'Content-Disposition' => 'inline; filename="' . $nombreArchivo . '"',
+        ]);
     }
 
     /**Mediciones de clientes de una empresa especifica */
