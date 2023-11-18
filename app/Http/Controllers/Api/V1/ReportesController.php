@@ -299,9 +299,10 @@ class ReportesController extends Controller
         $pdfContent = $dompdf->output();
 
         // Devolver el PDF al navegador como respuesta HTTP
-        return new Response($pdfContent, 200, [
-            'Content-Type' => 'application/pdf',
-            'Content-Disposition' => 'inline; filename="' . $nombreArchivo . '"',
+        // Devolver el PDF y el nombre del archivo como respuesta JSON
+        return response()->json([
+            'pdfContent' => base64_encode($pdfContent), // Convertir el contenido a base64
+            'nombreArchivo' => $nombreArchivo,
         ]);
     }
 
