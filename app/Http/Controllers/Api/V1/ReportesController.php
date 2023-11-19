@@ -8,11 +8,10 @@ use Dompdf\Options;
 use App\Models\Clientes;
 use App\Models\Inventario;
 use App\Models\Mediciones;
-use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\View;
-use Illuminate\Http\Response;
+use Illuminate\Support\Facades\Storage;
 
 
 class ReportesController extends Controller
@@ -260,7 +259,8 @@ class ReportesController extends Controller
     /** Función para generar el reporte de clientes */
     public function reporteClientes()
     {
-        // Obtener los clientes y la fecha actual
+        try {
+            // Obtener los clientes y la fecha actual
         $clientes = Clientes::orderBy('empresa')->get();
         $fechaActual = Carbon::now('America/Costa_Rica');
 
@@ -276,6 +276,7 @@ class ReportesController extends Controller
             'fechaActual' => $fechaActual,
         ])->render();
 
+        // Configurar opciones de Dompdf
         $options = new Options();
         $options->set('isHtml5ParserEnabled', true);
 
@@ -296,14 +297,21 @@ class ReportesController extends Controller
 
         // Guardar el PDF temporalmente en el servidor
         $nombreArchivo = 'clientes_reporte.pdf';
-        $rutaArchivo = storage_path('app/temp/' . $nombreArchivo);
-        file_put_contents($rutaArchivo, $pdfContent);
+        $rutaArchivo = 'reportes/' . $nombreArchivo; // ruta en el nuevo sistema de archivos
+        Storage::disk('reportes')->put($nombreArchivo, $pdfContent);
+
+        // Construir la URL del archivo para descargar
+        $urlDescarga = url('storage/' . $rutaArchivo);
 
         // Devolver la URL del archivo para descargar
         return response()->json([
-            'download_url' => url('temp/' . $nombreArchivo),
+            'download_url' => $urlDescarga,
             'nombreArchivo' => $nombreArchivo,
         ]);
+        } catch (\Exception $e) {
+            return response()->json(['error' => $e->getMessage()]);
+        }
+
     }
 
     /**Mediciones de clientes de una empresa especifica */
