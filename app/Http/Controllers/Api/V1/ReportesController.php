@@ -62,13 +62,20 @@ class ReportesController extends Controller
 
         $nombreArchivo = 'Reparacion ' . $reparacion->nombre_empresa;
 
-        // Renderizar el PDF
-        $pdf = $dompdf->render();
+        $pdfContent = $dompdf->output();
 
-        return response()->json(['data' => $pdf, 'status' => 200], 200);
+        // Guardar el PDF temporalmente en el servidor
+        $rutaArchivo = 'reportes/' . $nombreArchivo; // ruta en el nuevo sistema de archivos
+        Storage::disk('reportes')->put($nombreArchivo, $pdfContent);
 
-        // Devolver el PDF al navegador
-        //$pdf =$dompdf->stream($nombreArchivo);
+        // Construir la URL del archivo para descargar
+        $urlDescarga = url('storage/' . $rutaArchivo);
+
+        // Devolver la URL del archivo para descargar
+        return response()->json([
+            'download_url' => $urlDescarga,
+            'nombreArchivo' => $nombreArchivo,
+        ]);
     }
 
     /**Funcion que genera el detalle del pedido */
@@ -117,11 +124,20 @@ class ReportesController extends Controller
 
         $nombreArchivo = 'Detalle de pedido ' . $encabezadoPedido->nombre_empresa;
 
-        // Renderizar el PDF
-        $dompdf->render();
+        $pdfContent = $dompdf->output();
 
-        // Devolver el PDF al navegador
-        return $dompdf->stream($nombreArchivo);
+        // Guardar el PDF temporalmente en el servidor
+        $rutaArchivo = 'reportes/' . $nombreArchivo; // ruta en el nuevo sistema de archivos
+        Storage::disk('reportes')->put($nombreArchivo, $pdfContent);
+
+        // Construir la URL del archivo para descargar
+        $urlDescarga = url('storage/' . $rutaArchivo);
+
+        // Devolver la URL del archivo para descargar
+        return response()->json([
+            'download_url' => $urlDescarga,
+            'nombreArchivo' => $nombreArchivo,
+        ]);
     }
 
     /**Funcion que genera detalle de pagos de las reparaciones */
@@ -177,11 +193,20 @@ class ReportesController extends Controller
 
         $nombreArchivo = 'Pagos de reparacion ' . $reparacion->nombre_empresa;
 
-        // Renderizar el PDF
-        $dompdf->render();
+        $pdfContent = $dompdf->output();
 
-        // Devolver el PDF al navegador
-        return $dompdf->stream($nombreArchivo);
+        // Guardar el PDF temporalmente en el servidor
+        $rutaArchivo = 'reportes/' . $nombreArchivo; // ruta en el nuevo sistema de archivos
+        Storage::disk('reportes')->put($nombreArchivo, $pdfContent);
+
+        // Construir la URL del archivo para descargar
+        $urlDescarga = url('storage/' . $rutaArchivo);
+
+        // Devolver la URL del archivo para descargar
+        return response()->json([
+            'download_url' => $urlDescarga,
+            'nombreArchivo' => $nombreArchivo,
+        ]);
     }
 
     /**Funcion que genera detalle de pagos de los pedidos. */
@@ -238,11 +263,20 @@ class ReportesController extends Controller
 
         $nombreArchivo = 'Pagos de orden de pedido ' . $encabezadoPedido->nombre_empresa;
 
-        // Renderizar el PDF
-        $dompdf->render();
+        $pdfContent = $dompdf->output();
 
-        // Devolver el PDF al navegador
-        return $dompdf->stream($nombreArchivo);
+        // Guardar el PDF temporalmente en el servidor
+        $rutaArchivo = 'reportes/' . $nombreArchivo; // ruta en el nuevo sistema de archivos
+        Storage::disk('reportes')->put($nombreArchivo, $pdfContent);
+
+        // Construir la URL del archivo para descargar
+        $urlDescarga = url('storage/' . $rutaArchivo);
+
+        // Devolver la URL del archivo para descargar
+        return response()->json([
+            'download_url' => $urlDescarga,
+            'nombreArchivo' => $nombreArchivo,
+        ]);
     }
 
     /**Metodo para generar detalle de pago */
@@ -350,8 +384,20 @@ class ReportesController extends Controller
         // Renderizar el PDF
         $dompdf->render();
 
-        // Devolver el PDF al navegador
-        return $dompdf->stream($nombreArchivo);
+        $pdfContent = $dompdf->output();
+
+        // Guardar el PDF temporalmente en el servidor
+        $rutaArchivo = 'reportes/' . $nombreArchivo; // ruta en el nuevo sistema de archivos
+        Storage::disk('reportes')->put($nombreArchivo, $pdfContent);
+
+        // Construir la URL del archivo para descargar
+        $urlDescarga = url('storage/' . $rutaArchivo);
+
+        // Devolver la URL del archivo para descargar
+        return response()->json([
+            'download_url' => $urlDescarga,
+            'nombreArchivo' => $nombreArchivo,
+        ]);
     }
 
     /**Inventario actual de la empresa */
@@ -363,6 +409,7 @@ class ReportesController extends Controller
             ->join('categorias as c', 'c.id', '=', 'i.id_categoria')
             ->join('proveedores as p', 'p.id', '=', 'i.id_proveedor')
             ->get();
+
 
         $fechaActual = Carbon::now('America/Costa_Rica');
 
@@ -388,11 +435,20 @@ class ReportesController extends Controller
 
         $nombreArchivo = 'Inventario ' . $fechaActual;
 
-        // Renderizar el PDF
-        $dompdf->render();
+        $pdfContent = $dompdf->output();
 
-        // Devolver el PDF al navegador
-        return $dompdf->stream($nombreArchivo);
+        // Guardar el PDF temporalmente en el servidor
+        $rutaArchivo = 'reportes/' . $nombreArchivo; // ruta en el nuevo sistema de archivos
+        Storage::disk('reportes')->put($nombreArchivo, $pdfContent);
+
+        // Construir la URL del archivo para descargar
+        $urlDescarga = url('storage/' . $rutaArchivo);
+
+        // Devolver la URL del archivo para descargar
+        return response()->json([
+            'download_url' => $urlDescarga,
+            'nombreArchivo' => $nombreArchivo,
+        ]);
     }
 
 
