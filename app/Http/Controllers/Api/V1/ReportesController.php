@@ -66,7 +66,7 @@ class ReportesController extends Controller
         // Renderizar el PDF
         $pdf = $dompdf->render();
 
-        return response()->json(['data' => $pdf, 'status' => 200],200);
+        return response()->json(['data' => $pdf, 'status' => 200], 200);
 
         // Devolver el PDF al navegador
         //$pdf =$dompdf->stream($nombreArchivo);
@@ -257,7 +257,7 @@ class ReportesController extends Controller
         }
     }
 
-    /**Funcion para genenerar los clientes */
+    /** Función para generar el reporte de clientes */
     public function reporteClientes()
     {
         // Obtener los clientes y la fecha actual
@@ -276,7 +276,6 @@ class ReportesController extends Controller
             'fechaActual' => $fechaActual,
         ])->render();
 
-
         $options = new Options();
         $options->set('isHtml5ParserEnabled', true);
 
@@ -289,19 +288,20 @@ class ReportesController extends Controller
         // Establecer el tamaño del papel y la orientación
         $dompdf->setPaper('A4', 'landscape');
 
-        $nombreArchivo = 'clientes_' . $fechaActual . '.pdf';
-
         // Renderizar el PDF
         $dompdf->render();
-        //$dompdf->stream($nombreArchivo);
 
-         // Obtener el contenido del PDF
+        // Obtener el contenido del PDF
         $pdfContent = $dompdf->output();
 
-        // Devolver el PDF al navegador como respuesta HTTP
-        // Devolver el PDF y el nombre del archivo como respuesta JSON
+        // Guardar el PDF temporalmente en el servidor
+        $nombreArchivo = 'clientes_reporte.pdf';
+        $rutaArchivo = storage_path('app/temp/' . $nombreArchivo);
+        file_put_contents($rutaArchivo, $pdfContent);
+
+        // Devolver la URL del archivo para descargar
         return response()->json([
-            'pdfContent' => base64_encode($pdfContent), // Convertir el contenido a base64
+            'download_url' => url('temp/' . $nombreArchivo),
             'nombreArchivo' => $nombreArchivo,
         ]);
     }
@@ -351,10 +351,10 @@ class ReportesController extends Controller
     {
         // Obtener todos los registros del inventario
         $inventario = DB::table('inventario as i')
-        ->select('i.id', 'i.nombre_producto', 'i.cantidad', 'i.color', 'c.nombre_categoria', 'p.nombre as nombre_proveedor', 'i.comentario')
-        ->join('categorias as c', 'c.id', '=', 'i.id_categoria')
-        ->join('proveedores as p', 'p.id', '=', 'i.id_proveedor')
-        ->get();
+            ->select('i.id', 'i.nombre_producto', 'i.cantidad', 'i.color', 'c.nombre_categoria', 'p.nombre as nombre_proveedor', 'i.comentario')
+            ->join('categorias as c', 'c.id', '=', 'i.id_categoria')
+            ->join('proveedores as p', 'p.id', '=', 'i.id_proveedor')
+            ->get();
 
         $fechaActual = Carbon::now('America/Costa_Rica');
 
@@ -378,7 +378,7 @@ class ReportesController extends Controller
         // Establecer el tamaño del papel y la orientación
         $dompdf->setPaper('A4', 'landscape');
 
-        $nombreArchivo = 'Inventario ' . $fechaActual ;
+        $nombreArchivo = 'Inventario ' . $fechaActual;
 
         // Renderizar el PDF
         $dompdf->render();
