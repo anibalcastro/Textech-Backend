@@ -60,7 +60,10 @@ class ReportesController extends Controller
         // Establecer el tamaño del papel y la orientación
         $dompdf->setPaper('A4', 'portrait');
 
-        $nombreArchivo = 'Reparacion ' . $reparacion->nombre_empresa;
+        $nombreArchivo = 'Reparacion_' . $reparacion->nombre_empresa;
+
+        // Renderizar el PDF
+        $dompdf->render();
 
         $pdfContent = $dompdf->output();
 
@@ -122,7 +125,10 @@ class ReportesController extends Controller
         // Establecer el tamaño del papel y la orientación
         $dompdf->setPaper('A4', 'portrait');
 
-        $nombreArchivo = 'Detalle de pedido ' . $encabezadoPedido->nombre_empresa;
+        $nombreArchivo = 'Detalle_pedido_' . $encabezadoPedido->nombre_empresa;
+
+        // Renderizar el PDF
+        $dompdf->render();
 
         $pdfContent = $dompdf->output();
 
@@ -191,7 +197,7 @@ class ReportesController extends Controller
         // Establecer el tamaño del papel y la orientación
         $dompdf->setPaper('A4', 'portrait');
 
-        $nombreArchivo = 'Pagos de reparacion ' . $reparacion->nombre_empresa;
+        $nombreArchivo = 'Pago_reparacion_' . $reparacion->nombre_empresa;
 
         $pdfContent = $dompdf->output();
 
@@ -261,7 +267,10 @@ class ReportesController extends Controller
         // Establecer el tamaño del papel y la orientación
         $dompdf->setPaper('A4', 'portrait');
 
-        $nombreArchivo = 'Pagos de orden de pedido ' . $encabezadoPedido->nombre_empresa;
+        $nombreArchivo = 'Pago_orden_pedido_' . $encabezadoPedido->nombre_empresa;
+
+        // Renderizar el PDF
+        $dompdf->render();
 
         $pdfContent = $dompdf->output();
 
@@ -283,7 +292,7 @@ class ReportesController extends Controller
     public function generarDetallePago($tipo, $id)
     {
 
-        if ($tipo === "reparacion") {
+        if ($tipo === "reparaciones") {
             $this->detallePagoReparacion($id);
         } else {
             $this->detallePagoPedido($id);
@@ -295,57 +304,56 @@ class ReportesController extends Controller
     {
         try {
             // Obtener los clientes y la fecha actual
-        $clientes = Clientes::orderBy('empresa')->get();
-        $fechaActual = Carbon::now('America/Costa_Rica');
+            $clientes = Clientes::orderBy('empresa')->get();
+            $fechaActual = Carbon::now('America/Costa_Rica');
 
-        // Formatear números de teléfono
-        $clientes->transform(function ($cliente) {
-            $cliente->telefono = $this->formatearNumeroCelular($cliente->telefono);
-            return $cliente;
-        });
+            // Formatear números de teléfono
+            $clientes->transform(function ($cliente) {
+                $cliente->telefono = $this->formatearNumeroCelular($cliente->telefono);
+                return $cliente;
+            });
 
-        // Renderizar la vista Blade y obtener su contenido HTML
-        $html = View::make('clientes', [
-            'clientes' => $clientes,
-            'fechaActual' => $fechaActual,
-        ])->render();
+            // Renderizar la vista Blade y obtener su contenido HTML
+            $html = View::make('clientes', [
+                'clientes' => $clientes,
+                'fechaActual' => $fechaActual,
+            ])->render();
 
-        // Configurar opciones de Dompdf
-        $options = new Options();
-        $options->set('isHtml5ParserEnabled', true);
+            // Configurar opciones de Dompdf
+            $options = new Options();
+            $options->set('isHtml5ParserEnabled', true);
 
-        // Inicializar Dompdf
-        $dompdf = new Dompdf($options);
+            // Inicializar Dompdf
+            $dompdf = new Dompdf($options);
 
-        // Cargar el HTML en Dompdf
-        $dompdf->loadHtml($html);
+            // Cargar el HTML en Dompdf
+            $dompdf->loadHtml($html);
 
-        // Establecer el tamaño del papel y la orientación
-        $dompdf->setPaper('A4', 'landscape');
+            // Establecer el tamaño del papel y la orientación
+            $dompdf->setPaper('A4', 'landscape');
 
-        // Renderizar el PDF
-        $dompdf->render();
+            // Renderizar el PDF
+            $dompdf->render();
 
-        // Obtener el contenido del PDF
-        $pdfContent = $dompdf->output();
+            // Obtener el contenido del PDF
+            $pdfContent = $dompdf->output();
 
-        // Guardar el PDF temporalmente en el servidor
-        $nombreArchivo = 'clientes_reporte.pdf';
-        $rutaArchivo = 'reportes/' . $nombreArchivo; // ruta en el nuevo sistema de archivos
-        Storage::disk('reportes')->put($nombreArchivo, $pdfContent);
+            // Guardar el PDF temporalmente en el servidor
+            $nombreArchivo = 'clientes_reporte.pdf';
+            $rutaArchivo = 'reportes/' . $nombreArchivo; // ruta en el nuevo sistema de archivos
+            Storage::disk('reportes')->put($nombreArchivo, $pdfContent);
 
-        // Construir la URL del archivo para descargar
-        $urlDescarga = url('storage/' . $rutaArchivo);
+            // Construir la URL del archivo para descargar
+            $urlDescarga = url('storage/' . $rutaArchivo);
 
-        // Devolver la URL del archivo para descargar
-        return response()->json([
-            'download_url' => $urlDescarga,
-            'nombreArchivo' => $nombreArchivo,
-        ]);
+            // Devolver la URL del archivo para descargar
+            return response()->json([
+                'download_url' => $urlDescarga,
+                'nombreArchivo' => $nombreArchivo,
+            ]);
         } catch (\Exception $e) {
             return response()->json(['error' => $e->getMessage()]);
         }
-
     }
 
     /**Mediciones de clientes de una empresa especifica */
@@ -366,6 +374,7 @@ class ReportesController extends Controller
             'fechaActual' => $fechaActual,
         ])->render();
 
+        info($html);
 
         $options = new Options();
         $options->set('isHtml5ParserEnabled', true);
@@ -379,7 +388,7 @@ class ReportesController extends Controller
         // Establecer el tamaño del papel y la orientación
         $dompdf->setPaper('A4', 'landscape');
 
-        $nombreArchivo = $nombre_empresa . ' clientes ' . $fechaActual . '.pdf';
+        $nombreArchivo = $nombre_empresa . '_clientes_' . '.pdf';
 
         // Renderizar el PDF
         $dompdf->render();
@@ -420,7 +429,6 @@ class ReportesController extends Controller
             'fechaActual' => $fechaActual,
         ])->render();
 
-
         $options = new Options();
         $options->set('isHtml5ParserEnabled', true);
 
@@ -433,7 +441,10 @@ class ReportesController extends Controller
         // Establecer el tamaño del papel y la orientación
         $dompdf->setPaper('A4', 'landscape');
 
-        $nombreArchivo = 'Inventario ' . $fechaActual;
+        // Renderizar el PDF
+        $dompdf->render();
+
+        $nombreArchivo = 'Inventario.pdf';
 
         $pdfContent = $dompdf->output();
 
