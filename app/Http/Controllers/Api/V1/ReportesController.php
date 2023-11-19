@@ -143,76 +143,84 @@ class ReportesController extends Controller
         return response()->json([
             'download_url' => $urlDescarga,
             'nombreArchivo' => $nombreArchivo,
-        ]);
+        ], 200);
     }
 
     /**Funcion que genera detalle de pagos de las reparaciones */
     public function detallePagoReparacion($id_reparacion)
     {
-        $reparacion = DB::table('reparacion_prendas as rp')
-            ->join('facturas as f', 'f.id', '=', 'rp.id_factura')
-            ->join('empresas as e', 'e.id', '=', 'rp.id_empresa')
-            ->select('rp.id', 'rp.titulo', 'e.nombre_empresa', 'e.telefono_encargado', 'rp.estado', 'rp.fecha', 'f.cajero')
-            ->where('rp.id', $id_reparacion)
-            ->first();
+        try {
+            $reparacion = DB::table('reparacion_prendas as rp')
+                ->join('facturas as f', 'f.id', '=', 'rp.id_factura')
+                ->join('empresas as e', 'e.id', '=', 'rp.id_empresa')
+                ->select('rp.id', 'rp.titulo', 'e.nombre_empresa', 'e.telefono_encargado', 'rp.estado', 'rp.fecha', 'f.cajero')
+                ->where('rp.id', $id_reparacion)
+                ->first();
 
-        $detallePedido = DB::table('reparacion_prendas as rp')
-            ->join('detalle_reparacion_prendas as dp', 'dp.id_reparacion', '=', 'rp.id')
-            ->join('productos as p', 'p.id', '=', 'dp.id_producto')
-            ->select('p.nombre_producto', 'dp.cantidad', 'dp.descripcion', 'dp.precio_unitario', 'dp.subtotal')
-            ->where('rp.id', $id_reparacion)
-            ->get();
+            $detallePedido = DB::table('reparacion_prendas as rp')
+                ->join('detalle_reparacion_prendas as dp', 'dp.id_reparacion', '=', 'rp.id')
+                ->join('productos as p', 'p.id', '=', 'dp.id_producto')
+                ->select('p.nombre_producto', 'dp.cantidad', 'dp.descripcion', 'dp.precio_unitario', 'dp.subtotal')
+                ->where('rp.id', $id_reparacion)
+                ->get();
 
-        $facturaPedido = DB::table('reparacion_prendas as rp')
-            ->join('facturas as f', 'f.id', '=', 'rp.id_factura')
-            ->select('f.subtotal', 'f.iva', 'f.monto', 'f.saldo_restante')
-            ->where('rp.id', $id_reparacion)
-            ->first();
+            $facturaPedido = DB::table('reparacion_prendas as rp')
+                ->join('facturas as f', 'f.id', '=', 'rp.id_factura')
+                ->select('f.subtotal', 'f.iva', 'f.monto', 'f.saldo_restante')
+                ->where('rp.id', $id_reparacion)
+                ->first();
 
-        $abonosReparacion = DB::table('reparacion_prendas as rp')
-            ->join('facturas as f', 'f.id', '=', 'rp.id_factura')
-            ->join('abonos as a', 'a.factura_id', '=', 'f.id')
-            ->select('a.created_at', 'a.estado', 'a.metodo_pago', 'a.monto', 'a.cajero')
-            ->where('rp.id', $id_reparacion)
-            ->get();
+            $abonosReparacion = DB::table('reparacion_prendas as rp')
+                ->join('facturas as f', 'f.id', '=', 'rp.id_factura')
+                ->join('abonos as a', 'a.factura_id', '=', 'f.id')
+                ->select('a.created_at', 'a.estado', 'a.metodo_pago', 'a.monto', 'a.cajero')
+                ->where('rp.id', $id_reparacion)
+                ->get();
 
-        $html = View::make('detalle_pago_reparacion', [
-            'encabezadoPedido' => $reparacion,
-            'detalle' => $detallePedido,
-            'factura' => $facturaPedido,
-            'pagos' => $abonosReparacion
-        ])->render();
+            $html = View::make('detalle_pago_reparacion', [
+                'encabezadoPedido' => $reparacion,
+                'detalle' => $detallePedido,
+                'factura' => $facturaPedido,
+                'pagos' => $abonosReparacion
+            ])->render();
 
 
-        $options = new Options();
-        $options->set('isHtml5ParserEnabled', true);
-        $options->set('isPhpEnabled', true);
+            $options = new Options();
+            $options->set('isHtml5ParserEnabled', true);
+            $options->set('isPhpEnabled', true);
 
-        // Inicializar Dompdf
-        $dompdf = new Dompdf($options);
+            // Inicializar Dompdf
+            $dompdf = new Dompdf($options);
 
-        // Cargar el HTML en Dompdf
-        $dompdf->loadHtml($html);
+            // Cargar el HTML en Dompdf
+            $dompdf->loadHtml($html);
 
-        // Establecer el tamaño del papel y la orientación
-        $dompdf->setPaper('A4', 'portrait');
+            // Establecer el tamaño del papel y la orientación
+            $dompdf->setPaper('A4', 'portrait');
 
-        $nombreArchivo = 'Pago_reparacion_' . $reparacion->nombre_empresa;
+            $nombreArchivo = 'Pago_reparacion.pdf';
 
-        $pdfContent = $dompdf->output();
+            // Renderizar el PDF
+            $dompdf->render();
 
-        // Guardar el PDF temporalmente en el servidor
-        $rutaArchivo = 'reportes/' . $nombreArchivo; // ruta en el nuevo sistema de archivos
-        Storage::disk('reportes')->put($nombreArchivo, $pdfContent);
 
-        // Construir la URL del archivo para descargar
-        $urlDescarga = url('storage/' . $rutaArchivo);
+            $pdfContent = $dompdf->output();
 
-        // Devolver la URL del archivo para descargar
-        return response()->json([
-            'download_url' => $urlDescarga,
-            'nombreArchivo' => $nombreArchivo,
-        ]);
+            // Guardar el PDF temporalmente en el servidor
+            $rutaArchivo = 'reportes/' . $nombreArchivo; // ruta en el nuevo sistema de archivos
+            Storage::disk('reportes')->put($nombreArchivo, $pdfContent);
+
+            // Construir la URL del archivo para descargar
+            $urlDescarga = url('storage/' . $rutaArchivo);
+
+            // Devolver la URL del archivo para descargar
+            return response()->json([
+                'download_url' => $urlDescarga,
+                'nombreArchivo' => $nombreArchivo,
+            ], 200);
+        } catch (\Exception $e) {
+            return response()->json(['error' => $e->getMessage()], 422);
+        }
     }
 
     /**Funcion que genera detalle de pagos de los pedidos. */
@@ -267,7 +275,7 @@ class ReportesController extends Controller
         // Establecer el tamaño del papel y la orientación
         $dompdf->setPaper('A4', 'portrait');
 
-        $nombreArchivo = 'Pago_orden_pedido_' . $encabezadoPedido->nombre_empresa;
+        $nombreArchivo = 'Pago_orden_pedido_' . $encabezadoPedido->nombre_empresa . '.pdf';
 
         // Renderizar el PDF
         $dompdf->render();
@@ -293,9 +301,9 @@ class ReportesController extends Controller
     {
 
         if ($tipo === "reparaciones") {
-            $this->detallePagoReparacion($id);
+            return $this->detallePagoReparacion($id);
         } else {
-            $this->detallePagoPedido($id);
+            return $this->detallePagoPedido($id);
         }
     }
 
