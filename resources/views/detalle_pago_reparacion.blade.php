@@ -1,5 +1,6 @@
 @php
     $contador = 0;
+    $contadorPagos = 0;
 @endphp
 
 
