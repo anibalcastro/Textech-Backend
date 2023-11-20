@@ -133,6 +133,7 @@ Route::post('v1/reparacion/anular/{reparacion_id}',[App\Http\Controllers\Api\V1\
 //Categorias
 Route::apiResource('v1/categorias', CategoriasController::class)->only((['index']))->middleware('jwt.auth');
 Route::post('v1/categoria/registrar',[App\Http\Controllers\Api\V1\CategoriasController::class, 'registrarCategoria'])->middleware('jwt.auth');
+Route::get('v1/categoria/info',[App\Http\Controllers\Api\V1\CategoriasController::class, 'categoriasInfo'])->middleware('jwt.auth');
 Route::delete('v1/categorias/eliminar/{id_categoria}',[App\Http\Controllers\Api\V1\CategoriasController::class, 'eliminarCategoria'])->middleware('jwt.auth');
 
 /**************** */

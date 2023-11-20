@@ -107,7 +107,7 @@ class InventarioController extends Controller
             $mensajes = [];
             $inventario = [];
 
-            if(count($data) > 1){
+            if (count($data) > 1) {
                 foreach ($data as $item) {
                     $resultadoSalida = $this->modificarSalida($item);
                     if ($resultadoSalida !== true) {
@@ -115,8 +115,7 @@ class InventarioController extends Controller
                         $inventario[] = $item;
                     }
                 }
-            }
-            else{
+            } else {
                 $resultadoSalida = $this->modificarSalida($data);
 
                 if ($resultadoSalida !== true) {
@@ -229,7 +228,7 @@ class InventarioController extends Controller
             $cantidadAntes = $inventario->cantidad;
             $nuevaCantidad = $cantidad;
 
-            if ($nuevaCantidad<= $cantidadAntes){
+            if ($nuevaCantidad <= $cantidadAntes) {
 
                 $cantidad = round($cantidadAntes - $nuevaCantidad, 2);
 
@@ -242,11 +241,9 @@ class InventarioController extends Controller
                 } else {
                     return $resultado;
                 }
-            }
-            else{
+            } else {
                 return "La cantidad ingresada de salida del producto " . $nombre_producto . " es mayor a la existente.";
             }
-
         } else {
             return $validarCantidad;
         }
@@ -257,7 +254,7 @@ class InventarioController extends Controller
     {
         try {
             $validador = $this->validateData($request->all());
-            $inventario = Inventario::where("id",$id_inventario)->first();
+            $inventario = Inventario::where("id", $id_inventario)->first();
 
 
             if (!$validador) {
@@ -325,12 +322,11 @@ class InventarioController extends Controller
     public function inventario()
     {
         $resultado = DB::table('inventario as i')
-            ->join('proveedores as p', 'p.id', '=', 'i.id_proveedor')
-            ->join('categorias as c', 'c.id', '=', 'i.id_categoria')
+            ->leftJoin('proveedores as p', 'p.id', '=', 'i.id_proveedor')
+            ->leftJoin('categorias as c', 'c.id', '=', 'i.id_categoria')
             ->select('i.id', 'i.nombre_producto', 'i.cantidad', 'i.color', 'i.id_categoria', 'c.nombre_categoria', 'p.nombre as nombre_proveedor', 'i.comentario')
-            ->latest('i.created_at') // Agregando el método latest
+            ->latest('i.created_at')
             ->get();
-
 
         return response()->json([
             'data' => $resultado,

@@ -81,6 +81,17 @@ class CategoriasController extends Controller
         }
     }
 
+    public function categoriasInfo(){
+        $resultado = DB::table('proveedores')
+            ->select('id', 'nombre')
+            ->get();
+
+        return response()->json([
+            'data' => $resultado,
+            'status' => 200
+        ],200);
+    }
+
     /**
      * Función creada para validar los tipos de datos que entran en el request
      * En dado caso que alguna validacion falle, se mostrará un mensaje con el motivo del fallo
