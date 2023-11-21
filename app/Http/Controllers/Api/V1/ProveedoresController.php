@@ -2,9 +2,10 @@
 
 namespace App\Http\Controllers\Api\V1;
 
-use App\Http\Controllers\Controller;
-use Illuminate\Http\Request;
 use App\Models\Proveedores;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
+use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\Validator;
 
 class ProveedoresController extends Controller
@@ -13,21 +14,23 @@ class ProveedoresController extends Controller
     /**
      * Retorna informacion de proveedores con los productos asociados.
      */
-    public function index(){
+    public function index()
+    {
 
         $proveedoresConProductos = Proveedores::with('productos')->get();
 
         return response()->json([
             'data' => $proveedoresConProductos,
             'status' => 200
-        ],200);
+        ], 200);
     }
 
 
     /**
      * Metodo para registrar un nuevo proveedor
      */
-    public function registrarProveedor(Request $request){
+    public function registrarProveedor(Request $request)
+    {
         try {
 
 
@@ -36,7 +39,7 @@ class ProveedoresController extends Controller
             $validador = $this->validarDatos($request);
 
 
-            if ($validador === true){
+            if ($validador === true) {
                 //Da formato especial al numero de telefono.
                 $telefono = $this->formatTelefono($request->input('telefono'));
 
@@ -52,20 +55,19 @@ class ProveedoresController extends Controller
                 //Se guarda la informacion del objeto
                 $resultado = $objProveedor->save();
 
-                if ($resultado){
+                if ($resultado) {
                     //retorna resultado de proveedor creado exitosamente
                     return response()->json([
                         'mensaje' => 'El proveedor se ha creado exitosamente',
                         'status' => 200
-                    ],200);
-                }
-                else{
+                    ], 200);
+                } else {
                     //retorna que el proveedor no se creo de manera correcta
                     return response()->json([
                         'mensaje' => 'El proveedor no se ha podido almacenar de manera correcta',
                         'error' => $resultado,
                         'status' => 422
-                    ],422);
+                    ], 422);
                 }
             }
         } catch (\Exception $e) {
@@ -80,7 +82,8 @@ class ProveedoresController extends Controller
     /**
      * Método para darle formato al número de telefono
      */
-    public function formatTelefono ($telefono) {
+    public function formatTelefono($telefono)
+    {
         // Eliminar cualquier espacio en blanco y guiones
         $formatoTelefono = preg_replace("/[\s-]+/", "", $telefono);
 
@@ -97,7 +100,8 @@ class ProveedoresController extends Controller
     /**
      * Metodo que modifica informacion del proveedor por medio del identificador
      */
-    public function modificarProveedor(Request $request, $proveedor_id){
+    public function modificarProveedor(Request $request, $proveedor_id)
+    {
 
         //Valida los datos del request
         $validador = $this->validarDatos($request);
@@ -105,7 +109,7 @@ class ProveedoresController extends Controller
         //Busca el proveedor por medio del ID
         $proveedor = Proveedores::find($proveedor_id);
 
-        if ($validador === true && $proveedor){
+        if ($validador === true && $proveedor) {
 
             $telefonoFormateado = $this->formatTelefono($request->telefono);
 
@@ -124,9 +128,8 @@ class ProveedoresController extends Controller
                 'mensaje' => 'El proveedor se ha modificado de manera correcta',
                 'status' => 200,
 
-            ],200);
-        }
-        else{
+            ], 200);
+        } else {
             //Retorna un error.
             return response()->json([
                 'mensaje' => 'Error al modificar el proveedor',
@@ -138,12 +141,13 @@ class ProveedoresController extends Controller
     }
 
 
-    public function eliminarProveedor($proveedor_id){
-          //Eliminar el proveedor
-          $proveedor = Proveedores::find($proveedor_id);
-          $productosProveedorController = app(ProductosProveedoresController::class);
+    public function eliminarProveedor($proveedor_id)
+    {
+        //Eliminar el proveedor
+        $proveedor = Proveedores::find($proveedor_id);
+        $productosProveedorController = app(ProductosProveedoresController::class);
 
-          if ($proveedor){
+        if ($proveedor) {
 
             //Eliminar los productos de ese proveedor
             $productosProveedorController->eliminarTodosProductos($proveedor_id);
@@ -152,9 +156,8 @@ class ProveedoresController extends Controller
             return response()->json([
                 'mensaje' => 'El proveedor y los productos se han eliminado',
                 'status' => 200
-            ],200);
-        }
-        else {
+            ], 200);
+        } else {
             return response()->json([
                 'mensaje' => 'El proveedor no se ha encontrado',
                 'status' => 422,
@@ -163,10 +166,11 @@ class ProveedoresController extends Controller
         }
     }
 
-    public function obtenerProveedor($proveedor_id){
+    public function obtenerProveedor($proveedor_id)
+    {
         $proveedor = Proveedores::find($proveedor_id);
 
-        if (!$proveedor){
+        if (!$proveedor) {
             return response()->json([
                 'mensaje' => 'No se ha encontrado el proveedor',
                 'status' => 422
@@ -182,11 +186,22 @@ class ProveedoresController extends Controller
             'productos' => $productos,
             'status' => 200
         ]);
-
-
     }
 
-    public function validarDatos($request){
+    public function proveedoresInfo()
+    {
+        $resultado = DB::table('proveedores')
+            ->select('id', 'nombre')
+            ->get();
+
+        return response()->json([
+            'data' => $resultado,
+            'status' => 200
+        ], 200);
+    }
+
+    public function validarDatos($request)
+    {
         $reglas = [
             'nombre' => 'required|string|max:100',
             'direccion' => 'required|string|max:100',
@@ -211,7 +226,7 @@ class ProveedoresController extends Controller
 
         $validador = Validator::make($request->all(), $reglas, $mensajes);
 
-        if($validador->fails()){
+        if ($validador->fails()) {
             return $validador->errors()->all();
         }
 
