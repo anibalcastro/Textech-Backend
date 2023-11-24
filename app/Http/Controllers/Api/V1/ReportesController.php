@@ -423,8 +423,8 @@ class ReportesController extends Controller
         // Obtener todos los registros del inventario
         $inventario = DB::table('inventario as i')
             ->select('i.id', 'i.nombre_producto', 'i.cantidad', 'i.color', 'c.nombre_categoria', 'p.nombre as nombre_proveedor', 'i.comentario')
-            ->join('categorias as c', 'c.id', '=', 'i.id_categoria')
-            ->join('proveedores as p', 'p.id', '=', 'i.id_proveedor')
+            ->leftJoin('categorias as c', 'c.id', '=', 'i.id_categoria')
+            ->leftJoin('proveedores as p', 'p.id', '=', 'i.id_proveedor')
             ->get();
 
 
