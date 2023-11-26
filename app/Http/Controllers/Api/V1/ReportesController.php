@@ -364,6 +364,17 @@ class ReportesController extends Controller
         }
     }
 
+    public function vistaClientes(){
+         // Obtener los clientes y la fecha actual
+         $clientes = Clientes::orderBy('empresa')->get();
+
+         return response()->json([
+            'data'=>$clientes,
+            'status' => 200
+         ],200);
+
+    }
+
     /**Mediciones de clientes de una empresa especifica */
     public function medidasClientes($nombre_empresa)
     {
@@ -417,6 +428,18 @@ class ReportesController extends Controller
         ]);
     }
 
+    public function vistaMedidasClientes(){
+        $clientes = Mediciones::select('clientes.nombre', 'clientes.apellido1', 'clientes.apellido2', 'mediciones.articulo', 'clientes.empresa', 'mediciones.created_at')
+            ->join('clientes', 'clientes.id', '=', 'mediciones.id_cliente')
+            ->get();
+
+        return response()->json([
+            'data' => $clientes,
+            'status' => 200
+        ],200);
+
+    }
+
     /**Inventario actual de la empresa */
     public function reporteInventario()
     {
@@ -468,6 +491,21 @@ class ReportesController extends Controller
             'download_url' => $urlDescarga,
             'nombreArchivo' => $nombreArchivo,
         ]);
+    }
+
+
+    public function vistaInventario(){
+         // Obtener todos los registros del inventario
+         $inventario = DB::table('inventario as i')
+         ->select('i.id', 'i.nombre_producto', 'i.cantidad', 'i.color', 'c.nombre_categoria', 'p.nombre as nombre_proveedor', 'i.comentario')
+         ->leftJoin('categorias as c', 'c.id', '=', 'i.id_categoria')
+         ->leftJoin('proveedores as p', 'p.id', '=', 'i.id_proveedor')
+         ->get();
+
+         return response()->json([
+            "data" => $inventario,
+            "status" => 200
+         ],200);
     }
 
 
