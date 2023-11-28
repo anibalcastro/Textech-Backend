@@ -12,6 +12,7 @@ use Illuminate\Support\Facades\DB;
 use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\View;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Http\Request;
 
 
 class ReportesController extends Controller
@@ -364,15 +365,15 @@ class ReportesController extends Controller
         }
     }
 
-    public function vistaClientes(){
-         // Obtener los clientes y la fecha actual
-         $clientes = Clientes::orderBy('empresa')->get();
+    public function vistaClientes()
+    {
+        // Obtener los clientes y la fecha actual
+        $clientes = Clientes::orderBy('empresa')->get();
 
-         return response()->json([
-            'data'=>$clientes,
+        return response()->json([
+            'data' => $clientes,
             'status' => 200
-         ],200);
-
+        ], 200);
     }
 
     /**Mediciones de clientes de una empresa especifica */
@@ -428,7 +429,8 @@ class ReportesController extends Controller
         ]);
     }
 
-    public function vistaMedidasClientes(){
+    public function vistaMedidasClientes()
+    {
         $clientes = Mediciones::select('clientes.nombre', 'clientes.apellido1', 'clientes.apellido2', 'mediciones.articulo', 'clientes.empresa', 'mediciones.created_at')
             ->join('clientes', 'clientes.id', '=', 'mediciones.id_cliente')
             ->get();
@@ -436,8 +438,7 @@ class ReportesController extends Controller
         return response()->json([
             'data' => $clientes,
             'status' => 200
-        ],200);
-
+        ], 200);
     }
 
     /**Inventario actual de la empresa */
@@ -494,20 +495,253 @@ class ReportesController extends Controller
     }
 
 
-    public function vistaInventario(){
-         // Obtener todos los registros del inventario
-         $inventario = DB::table('inventario as i')
-         ->select('i.id', 'i.nombre_producto', 'i.cantidad', 'i.color', 'c.nombre_categoria', 'p.nombre as nombre_proveedor', 'i.comentario')
-         ->leftJoin('categorias as c', 'c.id', '=', 'i.id_categoria')
-         ->leftJoin('proveedores as p', 'p.id', '=', 'i.id_proveedor')
-         ->get();
+    public function vistaInventario()
+    {
+        // Obtener todos los registros del inventario
+        $inventario = DB::table('inventario as i')
+            ->select('i.id', 'i.nombre_producto', 'i.cantidad', 'i.color', 'c.nombre_categoria', 'p.nombre as nombre_proveedor', 'i.comentario')
+            ->leftJoin('categorias as c', 'c.id', '=', 'i.id_categoria')
+            ->leftJoin('proveedores as p', 'p.id', '=', 'i.id_proveedor')
+            ->get();
 
-         return response()->json([
+        return response()->json([
             "data" => $inventario,
             "status" => 200
-         ],200);
+        ], 200);
     }
 
+    /**Pdf de saldos pendientes */
+    public function saldosPendientes()
+    {
+        $saldoPendiente = 0;
+
+        $resultadoDB = DB::table('orden_pedido as op')
+            ->leftJoin('facturas as f', 'f.id', '=', 'op.id_factura')
+            ->leftJoin('empresas as e', 'e.id', '=', 'op.id_empresa')
+            ->select('op.titulo', 'e.nombre_empresa', 'f.monto', 'f.saldo_restante', 'op.created_at')
+            ->where('f.saldo_restante', '<>', 0)
+            ->get();
+
+        foreach($resultadoDB as $item){
+            $saldoPendiente += $item->saldo_restante;
+        }
+
+        $fechaActual = Carbon::now('America/Costa_Rica');
+
+
+        // Renderizar la vista Blade y obtener su contenido HTML
+        $html = View::make('saldos_pendientes', [
+            'saldos' => $resultadoDB,
+            'fechaActual' => $fechaActual,
+            'totalSaldo' => $saldoPendiente
+        ])->render();
+
+        $options = new Options();
+        $options->set('isHtml5ParserEnabled', true);
+
+        // Inicializar Dompdf
+        $dompdf = new Dompdf($options);
+
+        // Cargar el HTML en Dompdf
+        $dompdf->loadHtml($html);
+
+        // Establecer el tamaño del papel y la orientación
+        $dompdf->setPaper('A4', 'landscape');
+
+        // Renderizar el PDF
+        $dompdf->render();
+
+        $nombreArchivo = 'ReporteSaldosPendientes.pdf';
+
+        $pdfContent = $dompdf->output();
+
+        // Guardar el PDF temporalmente en el servidor
+        $rutaArchivo = 'reportes/' . $nombreArchivo; // ruta en el nuevo sistema de archivos
+        Storage::disk('reportes')->put($nombreArchivo, $pdfContent);
+
+        // Construir la URL del archivo para descargar
+        $urlDescarga = url('storage/' . $rutaArchivo);
+
+        // Devolver la URL del archivo para descargar
+        return response()->json([
+            'download_url' => $urlDescarga,
+            'nombreArchivo' => $nombreArchivo,
+        ]);
+    }
+
+    public function vistaSaldosPendientes()
+    {
+        $resultadoDB = DB::table('orden_pedido as op')
+            ->leftJoin('facturas as f', 'f.id', '=', 'op.id_factura')
+            ->leftJoin('empresas as e', 'e.id', '=', 'op.id_empresa')
+            ->select('op.titulo', 'e.nombre_empresa', 'f.monto', 'f.saldo_restante', 'op.created_at')
+            ->where('f.saldo_restante', '<>', 0)
+            ->get();
+
+        return response()->json([
+            'data' => $resultadoDB,
+            'status' => 200,
+        ], 200);
+    }
+
+    /**Pdf de los productos mas vendidos */
+    public function mejoresProductos()
+    {
+        //Consulta de los mejores productos en las ordenes de pedido.
+        $resultadoDB = DB::table('orden_pedido as op')
+        ->leftJoin('detalle_pedido as dp', 'dp.id_pedido', '=', 'op.id')
+        ->leftJoin('productos as p', 'p.id', '=', 'dp.id_producto')
+        ->select('p.nombre_producto', DB::raw('SUM(cantidad) as cantidad'))
+        ->groupBy('p.nombre_producto')
+        ->orderByDesc('cantidad')
+        ->get();
+
+        $fechaActual = Carbon::now('America/Costa_Rica');
+
+
+        // Renderizar la vista Blade y obtener su contenido HTML
+        $html = View::make('mejores_productos', [
+            'productos' => $resultadoDB,
+            'fechaActual' => $fechaActual,
+        ])->render();
+
+        $options = new Options();
+        $options->set('isHtml5ParserEnabled', true);
+
+        // Inicializar Dompdf
+        $dompdf = new Dompdf($options);
+
+        // Cargar el HTML en Dompdf
+        $dompdf->loadHtml($html);
+
+        // Establecer el tamaño del papel y la orientación
+        $dompdf->setPaper('A4', 'landscape');
+
+        // Renderizar el PDF
+        $dompdf->render();
+
+        $nombreArchivo = 'ReporteMejoresProductos.pdf';
+
+        $pdfContent = $dompdf->output();
+
+        // Guardar el PDF temporalmente en el servidor
+        $rutaArchivo = 'reportes/' . $nombreArchivo; // ruta en el nuevo sistema de archivos
+        Storage::disk('reportes')->put($nombreArchivo, $pdfContent);
+
+        // Construir la URL del archivo para descargar
+        $urlDescarga = url('storage/' . $rutaArchivo);
+
+        // Devolver la URL del archivo para descargar
+        return response()->json([
+            'download_url' => $urlDescarga,
+            'nombreArchivo' => $nombreArchivo,
+        ]);
+    }
+
+    public function vistaMejoresProductos()
+    {
+        $consulta = DB::table('orden_pedido as op')
+        ->leftJoin('detalle_pedido as dp', 'dp.id_pedido', '=', 'op.id')
+        ->leftJoin('productos as p', 'p.id', '=', 'dp.id_producto')
+        ->select('p.nombre_producto', DB::raw('SUM(cantidad) as cantidad'))
+        ->groupBy('p.nombre_producto')
+        ->orderByDesc('cantidad')
+        ->get();
+
+
+        return response()->json([
+            'data' => $consulta,
+            'status' => 200,
+        ], 200);
+    }
+
+    public function ventas(Request $request)
+    {
+        $fechaInicio = $request->input('fechaInicio');
+        $fechaFinal = $request->input('fechaFinal');
+        $ventaTotal = 0;
+
+
+        $resultados = DB::table('orden_pedido as op')
+        ->leftJoin('facturas as f', 'f.id', '=', 'op.id_factura')
+        ->select(
+            DB::raw('SUM(f.monto) as monto_total'),
+            DB::raw("TO_CHAR(op.created_at, 'YYYY-MM-DD') AS fecha")
+        )
+        ->whereBetween(DB::raw("DATE_TRUNC('day', op.created_at)"), [$fechaInicio, $fechaFinal])
+        ->where('op.estado', '<>', 'Anulada')
+        ->groupBy(DB::raw("TO_CHAR(op.created_at, 'YYYY-MM-DD')"))
+        ->orderBy(DB::raw("TO_CHAR(op.created_at, 'YYYY-MM-DD')"), 'desc')
+        ->get();
+
+        foreach ($resultados as $item){
+            $ventaTotal += $item->monto_total;
+        }
+
+        $fechaActual = Carbon::now('America/Costa_Rica');
+
+
+        // Renderizar la vista Blade y obtener su contenido HTML
+        $html = View::make('ventas', [
+            'ventas' => $resultados,
+            'fechaActual' => $fechaActual,
+            'fechaInicio' => $fechaInicio,
+            'fechaFinal' => $fechaFinal,
+            'totalVentas' => $ventaTotal
+        ])->render();
+
+        $options = new Options();
+        $options->set('isHtml5ParserEnabled', true);
+
+        // Inicializar Dompdf
+        $dompdf = new Dompdf($options);
+
+        // Cargar el HTML en Dompdf
+        $dompdf->loadHtml($html);
+
+        // Establecer el tamaño del papel y la orientación
+        $dompdf->setPaper('A4', 'landscape');
+
+        // Renderizar el PDF
+        $dompdf->render();
+
+        $nombreArchivo = 'ReporteVentas.pdf';
+
+        $pdfContent = $dompdf->output();
+
+        // Guardar el PDF temporalmente en el servidor
+        $rutaArchivo = 'reportes/' . $nombreArchivo; // ruta en el nuevo sistema de archivos
+        Storage::disk('reportes')->put($nombreArchivo, $pdfContent);
+
+        // Construir la URL del archivo para descargar
+        $urlDescarga = url('storage/' . $rutaArchivo);
+
+        // Devolver la URL del archivo para descargar
+        return response()->json([
+            'download_url' => $urlDescarga,
+            'nombreArchivo' => $nombreArchivo,
+        ]);
+    }
+
+    public function vistaVentas()
+    {
+        $resultados = DB::table('orden_pedido as op')
+        ->leftJoin('facturas as f', 'f.id', '=', 'op.id_factura')
+        ->select(
+            DB::raw('SUM(f.monto) as monto_total'),
+            DB::raw("TO_CHAR(op.created_at, 'YYYY-MM-DD') AS fecha")
+        )
+        ->where('op.estado', '<>', 'Anulada')
+        ->groupBy(DB::raw("TO_CHAR(op.created_at, 'YYYY-MM-DD')"))
+        ->orderBy(DB::raw("TO_CHAR(op.created_at, 'YYYY-MM-DD')"), 'desc')
+        ->get();
+
+        return response()->json([
+            'data' => $resultados,
+            'status' => 200
+        ],200);
+
+    }
 
     /**Formatea numero de telefono */
     private function formatearNumeroCelular($numero)
