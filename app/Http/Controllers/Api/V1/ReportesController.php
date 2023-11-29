@@ -522,7 +522,7 @@ class ReportesController extends Controller
             ->where('f.saldo_restante', '<>', 0)
             ->get();
 
-        foreach($resultadoDB as $item){
+        foreach ($resultadoDB as $item) {
             $saldoPendiente += $item->saldo_restante;
         }
 
@@ -589,12 +589,12 @@ class ReportesController extends Controller
     {
         //Consulta de los mejores productos en las ordenes de pedido.
         $resultadoDB = DB::table('orden_pedido as op')
-        ->leftJoin('detalle_pedido as dp', 'dp.id_pedido', '=', 'op.id')
-        ->leftJoin('productos as p', 'p.id', '=', 'dp.id_producto')
-        ->select('p.nombre_producto', DB::raw('SUM(cantidad) as cantidad'))
-        ->groupBy('p.nombre_producto')
-        ->orderByDesc('cantidad')
-        ->get();
+            ->leftJoin('detalle_pedido as dp', 'dp.id_pedido', '=', 'op.id')
+            ->leftJoin('productos as p', 'p.id', '=', 'dp.id_producto')
+            ->select('p.nombre_producto', DB::raw('SUM(cantidad) as cantidad'))
+            ->groupBy('p.nombre_producto')
+            ->orderByDesc('cantidad')
+            ->get();
 
         $fechaActual = Carbon::now('America/Costa_Rica');
 
@@ -641,12 +641,12 @@ class ReportesController extends Controller
     public function vistaMejoresProductos()
     {
         $consulta = DB::table('orden_pedido as op')
-        ->leftJoin('detalle_pedido as dp', 'dp.id_pedido', '=', 'op.id')
-        ->leftJoin('productos as p', 'p.id', '=', 'dp.id_producto')
-        ->select('p.nombre_producto', DB::raw('SUM(cantidad) as cantidad'))
-        ->groupBy('p.nombre_producto')
-        ->orderByDesc('cantidad')
-        ->get();
+            ->leftJoin('detalle_pedido as dp', 'dp.id_pedido', '=', 'op.id')
+            ->leftJoin('productos as p', 'p.id', '=', 'dp.id_producto')
+            ->select('p.nombre_producto', DB::raw('SUM(cantidad) as cantidad'))
+            ->groupBy('p.nombre_producto')
+            ->orderByDesc('cantidad')
+            ->get();
 
 
         return response()->json([
@@ -663,18 +663,19 @@ class ReportesController extends Controller
 
 
         $resultados = DB::table('orden_pedido as op')
-        ->leftJoin('facturas as f', 'f.id', '=', 'op.id_factura')
-        ->select(
-            DB::raw('SUM(f.monto) as monto_total'),
-            DB::raw("TO_CHAR(op.created_at, 'YYYY-MM-DD') AS fecha")
-        )
-        ->whereBetween(DB::raw("DATE_TRUNC('day', op.created_at)"), [$fechaInicio, $fechaFinal])
-        ->where('op.estado', '<>', 'Anulada')
-        ->groupBy(DB::raw("TO_CHAR(op.created_at, 'YYYY-MM-DD')"))
-        ->orderBy(DB::raw("TO_CHAR(op.created_at, 'YYYY-MM-DD')"), 'desc')
-        ->get();
+            ->leftJoin('facturas as f', 'f.id', '=', 'op.id_factura')
+            ->select(
+                DB::raw('SUM(f.monto) as monto_total'),
+                DB::raw("DATE(op.created_at) AS fecha")
+            )
+            ->whereBetween(DB::raw("DATE(op.created_at)"), [$fechaInicio, $fechaFinal])
+            ->where('op.estado', '<>', 'Anulada')
+            ->groupBy(DB::raw("DATE(op.created_at)"))
+            ->orderBy(DB::raw("DATE(op.created_at)"), 'desc')
+            ->get();
 
-        foreach ($resultados as $item){
+
+        foreach ($resultados as $item) {
             $ventaTotal += $item->monto_total;
         }
 
@@ -726,21 +727,20 @@ class ReportesController extends Controller
     public function vistaVentas()
     {
         $resultados = DB::table('orden_pedido as op')
-        ->leftJoin('facturas as f', 'f.id', '=', 'op.id_factura')
-        ->select(
-            DB::raw('SUM(f.monto) as monto_total'),
-            DB::raw("TO_CHAR(op.created_at, 'YYYY-MM-DD') AS fecha")
-        )
-        ->where('op.estado', '<>', 'Anulada')
-        ->groupBy(DB::raw("TO_CHAR(op.created_at, 'YYYY-MM-DD')"))
-        ->orderBy(DB::raw("TO_CHAR(op.created_at, 'YYYY-MM-DD')"), 'desc')
-        ->get();
+            ->leftJoin('facturas as f', 'f.id', '=', 'op.id_factura')
+            ->select(
+                DB::raw('SUM(f.monto) as monto_total'),
+                DB::raw("TO_CHAR(op.created_at, 'YYYY-MM-DD') AS fecha")
+            )
+            ->where('op.estado', '<>', 'Anulada')
+            ->groupBy(DB::raw("TO_CHAR(op.created_at, 'YYYY-MM-DD')"))
+            ->orderBy(DB::raw("TO_CHAR(op.created_at, 'YYYY-MM-DD')"), 'desc')
+            ->get();
 
         return response()->json([
             'data' => $resultados,
             'status' => 200
-        ],200);
-
+        ], 200);
     }
 
     /**Formatea numero de telefono */

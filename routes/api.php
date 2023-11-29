@@ -154,9 +154,9 @@ Route::get('v1/mediciones-clientes/{nombre_empresa}', [ReportesController::class
 Route::get('v1/pdf/orden_pedido/{id_pedido}', [ReportesController::class, 'generarDetallePedido'])->middleware('jwt.auth');
 Route::get('v1/pdf/reparacion/{id_reparacion}', [ReportesController::class, 'generarDetalleReparacion'])->middleware('jwt.auth');
 Route::get('v1/pdf/pagos/{tipo}/{id}', [ReportesController::class, 'generarDetallePago'])->middleware('jwt.auth');
-Route::get('v1/pdf/mejores-productos', [ReportesController::class, 'mejoresProductos']);
-Route::get('v1/pdf/saldos-pendientes', [ReportesController::class, 'saldosPendientes']);
-Route::post('v1/pdf/ventas', [ReportesController::class, 'ventas']);
+Route::get('v1/pdf/mejores-productos', [ReportesController::class, 'mejoresProductos'])->middleware('jwt.auth');
+Route::get('v1/pdf/saldos-pendientes', [ReportesController::class, 'saldosPendientes'])->middleware('jwt.auth');
+Route::post('v1/pdf/ventas', [ReportesController::class, 'ventas'])->middleware('jwt.auth');
 
 
 
