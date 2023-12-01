@@ -662,17 +662,19 @@ class ReportesController extends Controller
         $ventaTotal = 0;
 
 
-        $resultados = DB::table('orden_pedido as op')
-            ->leftJoin('facturas as f', 'f.id', '=', 'op.id_factura')
+        $resultados = DB::table('facturas as f')
+            ->leftJoin('orden_pedido as op', 'op.id_factura', '=', 'f.id')
+            ->leftJoin('reparacion_prendas as rp', 'rp.id_factura', '=', 'f.id')
             ->select(
-                DB::raw('SUM(f.monto) as monto_total'),
-                DB::raw("DATE(op.created_at) AS fecha")
+                DB::raw('(SUM(f.monto) - SUM(f.saldo_restante)) as monto_total'),
+                DB::raw('DATE(f.created_at) as fecha')
             )
-            ->whereBetween(DB::raw("DATE(op.created_at)"), [$fechaInicio, $fechaFinal])
-            ->where('op.estado', '<>', 'Anulada')
-            ->groupBy(DB::raw("DATE(op.created_at)"))
-            ->orderBy(DB::raw("DATE(op.created_at)"), 'desc')
+            ->whereBetween(DB::raw('DATE(f.created_at)'), [$fechaInicio, $fechaFinal])
+            ->where('f.estado', '<>', 'Nula')
+            ->groupBy(DB::raw('DATE(f.created_at)'))
+            ->orderBy(DB::raw('DATE(f.created_at)'), 'desc')
             ->get();
+
 
 
         foreach ($resultados as $item) {
@@ -726,16 +728,18 @@ class ReportesController extends Controller
 
     public function vistaVentas()
     {
-        $resultados = DB::table('orden_pedido as op')
-            ->leftJoin('facturas as f', 'f.id', '=', 'op.id_factura')
+        $resultados = DB::table('facturas as f')
+            ->leftJoin('orden_pedido as op', 'op.id_factura', '=', 'f.id')
+            ->leftJoin('reparacion_prendas as rp', 'rp.id_factura', '=', 'f.id')
             ->select(
-                DB::raw('SUM(f.monto) as monto_total'),
-                DB::raw("TO_CHAR(op.created_at, 'YYYY-MM-DD') AS fecha")
+                DB::raw('(SUM(f.monto) - SUM(f.saldo_restante)) as monto_total'),
+                DB::raw('DATE(f.created_at) as fecha')
             )
-            ->where('op.estado', '<>', 'Anulada')
-            ->groupBy(DB::raw("TO_CHAR(op.created_at, 'YYYY-MM-DD')"))
-            ->orderBy(DB::raw("TO_CHAR(op.created_at, 'YYYY-MM-DD')"), 'desc')
+            ->where('f.estado', '<>', 'Nula')
+            ->groupBy(DB::raw('DATE(f.created_at)'))
+            ->orderBy(DB::raw('DATE(f.created_at)'), 'desc')
             ->get();
+
 
         return response()->json([
             'data' => $resultados,

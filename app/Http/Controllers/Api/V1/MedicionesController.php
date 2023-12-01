@@ -87,7 +87,7 @@ class MedicionesController extends Controller
     {
         try {
             // Valida los datos del request
-            $this->validateData($request);
+            $validar = $this->validateData($request);
 
             // Verifica si el artículo ya existe en las mediciones del cliente
             $existeMedida = Mediciones::where('id_cliente', $request->id_cliente)
@@ -96,24 +96,33 @@ class MedicionesController extends Controller
 
             if ($existeMedida) {
                 return response()->json([
-                    'mensaje' => "Error, ya existen medidas del cliente para el artículo " . $request->articulo, 'status' => 300,
-                ], 404);
-            } else {
-                // Crea el registro
-                $nRegistro = Mediciones::create($request->all());
+                    'error' => "Error, ya existen medidas del cliente para el artículo " . $request->articulo,
+                    'status' => 422,
+                ], 422);
 
-                if ($nRegistro) {
-                    // Retornamos una respuesta
+            } else {
+                if($validar === true){
+                    // Crea el registro
+                    $nRegistro = Mediciones::create($request->all());
+                    if ($nRegistro) {
+                        // Retornamos una respuesta
+                        return response()->json([
+                            'data' => $request->all(),
+                            'mensaje' => 'Registro creado con éxito',
+                            'status' => 200
+                        ]);
+                    } else {
+                        return response()->json([
+                            'mensaje' => 'Error, no se ha podido almacenar',
+                            'status' => 404
+                        ]);
+                    }
+                }
+                else{
                     return response()->json([
-                        'data' => $request->all(),
-                        'mensaje' => 'Registro creado con éxito',
-                        'status' => 200
-                    ]);
-                } else {
-                    return response()->json([
-                        'mensaje' => 'Error, no se ha podido almacenar',
-                        'status' => 404
-                    ]);
+                        'error' => $validar,
+                        'status' => 422
+                    ],422);
                 }
             }
         } catch (\Exception $e) {
@@ -201,42 +210,6 @@ class MedicionesController extends Controller
         ], 200);
     }
 
-    public function almacenarArchivo(Request $request, $id_medida)
-    {
-
-        $this->validarArchivo($request);
-
-
-        if ($request->hasFile('archivo')) {
-            $path = $request->file('archivo')->store('carpeta_destino');
-
-
-            //Almacenar el path y la identificación de las mediciones.
-            return response()->json([
-                'data' => $path,
-                'mensajes' => 'Se ha almacenado el archivo'
-            ], 200);
-        } else {
-            return response()->json([
-                'error' => 'No se ha enviado ningun archivo, o no tiene la extension correcta'
-            ], 404);
-        }
-    }
-
-    public function validarArchivo(Request $request)
-    {
-        $validator = $request->validate([
-            'archivo' => 'required|file|mimes:pdf,png,heic,jpg',
-        ]);
-
-        if ($validator) {
-            return response()->json([
-                'error' => $validator,
-                'message' => 'Error en los datos proporcionados.'
-            ], 422);
-        }
-    }
-
     /**Función para obtener cantidad de mediciones */
     public function cantidadMediciones(){
         $cantidad = Mediciones::count();
@@ -292,10 +265,9 @@ class MedicionesController extends Controller
 
         //Si la validación falla, muestra el error.
         if ($validator->fails()) {
-            return response()->json([
-                'errors' => $validator->errors(),
-                'message' => 'Error en los datos proporcionados.'
-            ], 422);
+            return $validator->errors()->all();
         }
+
+        return true;
     }
 }
