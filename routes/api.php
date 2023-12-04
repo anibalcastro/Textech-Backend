@@ -5,6 +5,7 @@ use App\Http\Controllers\Api\V1\CategoriasController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Api\V1\ClientesController;
+use App\Http\Controllers\Api\V1\EmailController;
 use App\Http\Controllers\Api\V1\MedicionesController;
 use App\Http\Controllers\Api\V1\EmpresasController;
 use App\Http\Controllers\Api\V1\InventarioController;
@@ -158,11 +159,11 @@ Route::get('v1/pdf/mejores-productos', [ReportesController::class, 'mejoresProdu
 Route::get('v1/pdf/saldos-pendientes', [ReportesController::class, 'saldosPendientes'])->middleware('jwt.auth');
 Route::post('v1/pdf/ventas', [ReportesController::class, 'ventas'])->middleware('jwt.auth');
 
-
-
 Route::get('v1/vista/clientes', [ReportesController::class, 'vistaClientes'])->middleware('jwt.auth');
 Route::get('v1/vista/mediciones-clientes', [ReportesController::class, 'vistaMedidasClientes'])->middleware('jwt.auth');
 Route::get('v1/vista/inventario', [ReportesController::class, 'vistaInventario'])->middleware('jwt.auth');
 Route::get('v1/vista/mejores-productos', [ReportesController::class, 'vistaMejoresProductos'])->middleware('jwt.auth');
 Route::get('v1/vista/saldos-pendientes', [ReportesController::class, 'vistaSaldosPendientes'])->middleware('jwt.auth');
 Route::get('v1/vista/ventas', [ReportesController::class, 'vistaVentas'])->middleware('jwt.auth');
+
+Route::post('v1/email/notificacion', [EmailController::class, 'sendEmail'])->middleware('jwt.auth');
