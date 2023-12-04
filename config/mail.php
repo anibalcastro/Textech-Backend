@@ -1,7 +1,7 @@
 <?php
 
 return [
-
+    'driver' => env('MAIL_DRIVER', 'sendgrid'),
     /*
     |--------------------------------------------------------------------------
     | Default Mailer
@@ -83,6 +83,11 @@ return [
             'mailers' => [
                 'smtp',
                 'log',
+            ],
+        ],
+        'mailers' => [
+            'sendgrid' => [
+                'transport' => 'sendgrid',
             ],
         ],
     ],
