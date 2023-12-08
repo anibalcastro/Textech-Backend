@@ -127,6 +127,9 @@
                     <li>
                         <p class="fecha">Total en ventas: <strong>{{ '¢' . number_format($totalVentas ?? 0, 2, ',', '.') }}</strong></p>
                     </li>
+                    <li>
+                        <p class="fecha">Total pagado: <strong>{{ '¢' . number_format($montoPagado ?? 0, 2, ',', '.') }}</strong></p>
+                    </li>
 
                 </ul>
             </div>
