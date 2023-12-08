@@ -137,7 +137,8 @@
                 <tr>
                     <th>ID</th>
                     <th>Fecha</th>
-                    <th>Monto total de ventas</th>
+                    <th>Monto facturado</th>
+                    <th>Monto pagado</th>
                 </tr>
             </thead>
             <tbody>
@@ -149,7 +150,8 @@
                     <tr>
                         <td>{{ $contador }}</td>
                         <td>{{ $item->fecha }}</td>
-                        <td>{{ '¢' . number_format($item->monto_total ?? 0, 2, ',', '.') }}</td>
+                        <td>{{ '¢' . number_format($item->monto_facturado ?? 0, 2, ',', '.') }}</td>
+                        <td>{{ '¢' . number_format($item->monto_pagado ?? 0, 2, ',', '.') }}</td>
                     </tr>
                 @endforeach
             </tbody>
