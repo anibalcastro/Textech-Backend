@@ -9,6 +9,8 @@ use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Validator;
 use App\Http\Resources\V1\MedicionesResource;
+use App\Models\Clientes;
+use Carbon\Carbon;
 
 
 class MedicionesController extends Controller
@@ -86,8 +88,15 @@ class MedicionesController extends Controller
     public function registrarMedida(Request $request)
     {
         try {
+            // Iniciar la transacción
+            DB::beginTransaction();
+
             // Valida los datos del request
             $validar = $this->validateData($request);
+
+            //Nombre del cliente
+            $cliente = Clientes::where('id' , $request->id_cliente)->first();
+            $nombreCliente = $cliente ? $cliente->nombre . ' ' . $cliente->apellido1 . ' ' . $cliente->apellido2 : null;
 
             // Verifica si el artículo ya existe en las mediciones del cliente
             $existeMedida = Mediciones::where('id_cliente', $request->id_cliente)
@@ -95,16 +104,19 @@ class MedicionesController extends Controller
                 ->exists();
 
             if ($existeMedida) {
+
+                $this->guardarRequestEnArchivo($request, $nombreCliente, 'Medida existente en base de datos');
                 return response()->json([
                     'error' => "Error, ya existen medidas del cliente para el artículo " . $request->articulo,
                     'status' => 422,
                 ], 422);
-
             } else {
-                if($validar === true){
-                    // Crea el registro
+                if ($validar === true) {
+                    // Crea el registro dentro de la transacción
                     $nRegistro = Mediciones::create($request->all());
                     if ($nRegistro) {
+                        // Commit de la transacción si todo va bien
+                        DB::commit();
                         // Retornamos una respuesta
                         return response()->json([
                             'data' => $request->all(),
@@ -112,20 +124,30 @@ class MedicionesController extends Controller
                             'status' => 200
                         ]);
                     } else {
+                        // Rollback si falla la creación del registro
+                        DB::rollBack();
+
+                        $this->guardarRequestEnArchivo($request, $nombreCliente, $nRegistro);
+
                         return response()->json([
                             'mensaje' => 'Error, no se ha podido almacenar',
                             'status' => 404
                         ]);
                     }
-                }
-                else{
+                } else {
                     return response()->json([
                         'error' => $validar,
                         'status' => 422
-                    ],422);
+                    ], 422);
                 }
             }
+
         } catch (\Exception $e) {
+            // Rollback en caso de excepción
+            DB::rollBack();
+
+            $this->guardarRequestEnArchivo($request, $nombreCliente, $e);
+
             return response()->json([
                 'error' => $e,
                 'mensaje' => 'Error, hay datos nulos'
@@ -211,12 +233,13 @@ class MedicionesController extends Controller
     }
 
     /**Función para obtener cantidad de mediciones */
-    public function cantidadMediciones(){
+    public function cantidadMediciones()
+    {
         $cantidad = Mediciones::count();
         return response()->json([
             'cantidad_mediciones' => $cantidad,
             'status' => 200
-        ],200);
+        ], 200);
     }
 
     /**
@@ -269,5 +292,25 @@ class MedicionesController extends Controller
         }
 
         return true;
+    }
+
+
+    public function guardarRequestEnArchivo($request, $cliente, $error)
+    {
+        // Obtener la fecha actual en el formato especificado
+        $fecha = Carbon::now()->format('d/m/Y H:i:s');
+
+        // Crear la estructura del mensaje a guardar en el archivo
+        $mensaje = "fecha: " . $fecha ." | error: ". $error ." |  cliente: " . $cliente . " | datos: " . json_encode($request->all(), JSON_PRETTY_PRINT);
+
+
+        $filename = "error_logs_mediciones.txt";
+
+        if (!Storage::exists($filename)) {
+            Storage::put($filename, ''); // Crear el archivo si no existe
+        }
+
+        // Guardar el mensaje en un archivo txt en el servidor
+        Storage::append($filename, $mensaje);
     }
 }
