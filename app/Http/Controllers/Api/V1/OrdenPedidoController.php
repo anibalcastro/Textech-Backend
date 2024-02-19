@@ -395,7 +395,7 @@ class OrdenPedidoController extends Controller
     public function actualizarEstadoPedido(Request $request, $id_orden)
     {
         //Estados
-        $estados = ["Pendiente", "En Proceso", "Listo", "Entregado"];
+        $estados = ["Taller", "Entrega Tienda", "Entregada al cliente"];
 
         $nuevoEstado = $request->estado;
         $orden = OrdenPedido::find($id_orden);
@@ -498,43 +498,70 @@ class OrdenPedidoController extends Controller
     public function cantidadOrdenEstado()
     {
         $ordenes = OrdenPedido::all();
-        $cantidad_pendientes = 0;
-        $cantidad_proceso = 0;
-        $cantidad_listos = 0;
-        $cantidad_entregados = 0;
-        $cantidad_anulados = 0;
+        $cantidad_taller = 0;
+        $cantidad_entrega_tienda = 0;
+        $cantidad_entrega_cliente = 0;
 
         foreach ($ordenes as $orden) {
-            if ($orden->estado === "Pendiente") {
-                $cantidad_pendientes++;
-            } elseif ($orden->estado === "En Proceso") {
-                $cantidad_proceso++;
-            } elseif ($orden->estado === "Listo") {
-                $cantidad_listos++;
-            } elseif ($orden->estado === "Entregado") {
-                $cantidad_entregados++;
-            } elseif ($orden->estado === "Anulada") {
-                $cantidad_anulados++;
+            if ($orden->estado === "Taller") {
+                $cantidad_taller++;
+            } elseif ($orden->estado === "Entrega tienda") {
+                $cantidad_entrega_tienda++;
+            } elseif ($orden->estado === "Entregada al cliente") {
+                $cantidad_entrega_cliente++;
             }
         }
 
         return response()->json([
-            "cantidad_pendientes" => $cantidad_pendientes,
-            "cantidad_enproceso" => $cantidad_proceso,
-            "cantidad_listos" => $cantidad_listos,
-            "cantidad_entragados" => $cantidad_entregados,
-            "cantidad_anulados" => $cantidad_anulados,
+            "cantidad_taller" => $cantidad_taller,
+            "cantidad_entrega_tienda" => $cantidad_entrega_tienda,
+            "cantidad_entrega_cliente" => $cantidad_entrega_cliente,
             "status" => 200
         ], 200);
     }
 
-    public function generarProforma()
-    {
+    /**Cambia el estado de la pizarra */
+    public function cambiarEstadoPizarra($id_orden){
+        $orden = OrdenPedido::find($id_orden);
+
+        if (!$orden){
+            return response()->json([
+                'mensaje' => 'La orden no ha sido encontrada',
+                'status' => 422
+            ],422);
+        }
+
+        OrdenPedido::where('id', $id_orden)->update(['pizarra' => true]);
+
+        return response()->json([
+            'mensaje' => 'Se ha actualizado correctamente',
+            'status' => 200
+        ],200);
+
+
+
     }
 
-    public function enviarProformaCorreo()
-    {
+    /**Cambia el estado de la tela */
+    public function cambiarEstadoTelas($id_orden){
+        $orden = OrdenPedido::find($id_orden);
+
+        if (!$orden){
+            return response()->json([
+                'mensaje' => 'La orden no ha sido encontrada',
+                'status' => 422
+            ],422);
+        }
+
+        OrdenPedido::where('id', $id_orden)->update(['tela' => true]);
+
+        return response()->json([
+            'mensaje' => 'Se ha actualizado correctamente',
+            'status' => 200
+        ],200);
+
     }
+
 
     /**
      * Función para validar los datos de entrada de la orden.
