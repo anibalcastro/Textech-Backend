@@ -12,9 +12,9 @@ use App\Http\Controllers\Api\V1\InventarioController;
 use App\Http\Controllers\Api\V1\OrdenPedidoController;
 use App\Http\Controllers\Api\V1\ProductosController;
 use App\Http\Controllers\Api\V1\ProveedoresController;
-use App\Http\Controllers\Api\V1\ProductosProveedoresController;
 use App\Http\Controllers\Api\V1\ReparacionController;
 use App\Http\Controllers\Api\V1\ReportesController;
+use App\Http\Controllers\Api\V1\OrdenPedidoPersonaController;
 
 
 
@@ -92,6 +92,8 @@ Route::post('v1/ordenes/registrar', [App\Http\Controllers\Api\V1\OrdenPedidoCont
 Route::post('v1/ordenes/editar/{id_orden}', [App\Http\Controllers\Api\V1\OrdenPedidoController::class, 'modificarOrden'])->middleware('jwt.auth');
 Route::post('v1/ordenes/editar/estado/{id_orden}', [App\Http\Controllers\Api\V1\OrdenPedidoController::class, 'actualizarEstadoPedido'])->middleware('jwt.auth');
 Route::post('v1/ordenes/anular/{id_orden}', [App\Http\Controllers\Api\V1\OrdenPedidoController::class, 'anularOrden'])->middleware('jwt.auth');
+Route::get('v1/orden/pizarra/{id_orden}', [App\Http\Controllers\Api\V1\OrdenPedidoController::class, 'cambiarEstadoPizarra'])->middleware('jwt.auth');
+Route::get('v1/orden/tela/{id_orden}', [App\Http\Controllers\Api\V1\OrdenPedidoController::class, 'cambiarEstadoTelas'])->middleware('jwt.auth');
 
 /**************** */
 //Ruta de Facturas
@@ -167,3 +169,13 @@ Route::get('v1/vista/saldos-pendientes', [ReportesController::class, 'vistaSaldo
 Route::get('v1/vista/ventas', [ReportesController::class, 'vistaVentas'])->middleware('jwt.auth');
 
 Route::post('v1/email/notificacion', [EmailController::class, 'sendEmail'])->middleware('jwt.auth');
+
+
+/*************** */
+//Orden pedido personas
+Route::get('v1/personas/',[OrdenPedidoPersonaController::class, 'index'])->middleware('jwt.auth')->middleware('jwt.auth');
+Route::post('v1/personas/crear/',[OrdenPedidoPersonaController::class, 'crearOrdenPedidoPersona'])->middleware('jwt.auth');
+Route::get('v1/personas/modificar/estado/{id}',[OrdenPedidoPersonaController::class, 'modificarEstadoEntregado'])->middleware('jwt.auth');
+Route::get('v1/personas/orden/{id_orden}',[OrdenPedidoPersonaController::class, 'personasOrdenPedido'])->middleware('jwt.auth');
+
+
