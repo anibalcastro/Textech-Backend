@@ -81,6 +81,7 @@ class OrdenPedidoController extends Controller
                 $orden = $data['orden'];
                 $detalles = $orden['detalles'];
                 $factura = $orden['factura'];
+                $persona = $orden['persona'];
 
                 // Crea la orden
                 $crearOrden = OrdenPedido::create($orden);
@@ -112,7 +113,12 @@ class OrdenPedidoController extends Controller
 
                     $data = $resultadoFactura->getData();
 
-                    if ($data->status === 200) {
+                    $ordenPedidoPersona = app(OrdenPedidoPersonaController::class);
+                    $resultadoPedidoPersona = $ordenPedidoPersona->registroOrdenPedidoPersona($persona, $idOrden);
+
+                    $dataPersona = $resultadoPedidoPersona->getData();
+
+                    if ($data->status === 200 || $dataPersona->status === 200 ) {
                         // Confirma la transacción
                         DB::commit();
 
