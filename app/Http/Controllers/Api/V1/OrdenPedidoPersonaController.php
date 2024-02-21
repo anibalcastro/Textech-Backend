@@ -62,6 +62,57 @@ class OrdenPedidoPersonaController extends Controller{
         return response()->json(['data'=> $ordenPedidoPersona, 'status' => 200],200);
     }
 
+
+    /**
+     * Función para registrar empresa por medio de ID
+     */
+    public function registroOrdenPedidoPersona($request, $id_orden){
+
+        //$data = json_decode($request, true); // Obtener el JSON
+
+        // Verificar si se recibieron datos
+        if (empty($request)) {
+            return response()->json([
+                'mensaje' => 'No se recibieron datos válidos',
+                'status' => 422
+            ], 422);
+        }
+
+        $response = [];
+
+        // Iterar sobre cada objeto en el JSON
+        foreach ($request as $item) {
+            // Validar cada objeto
+            $validador = $this->validateData($item);
+
+            if ($validador !== true) {
+                $response[] = [
+                    'mensaje' => 'No se ha podido crear, revise los datos',
+                    'errors' => $validador,
+                    'status' => 422
+                ];
+            } else {
+                // Crear la OrdenPedidoPersona con los datos del objeto actual
+                $ordenPedidoPersona = OrdenPedidoPersona::create([
+                    'id_orden' => $id_orden,
+                    'prenda' => $item['prenda'],
+                    'nombre' => $item['nombre'],
+                    'cantidad' => $item['cantidad'],
+                    'entregado' => false, // Por defecto, el campo entregado se establece en false
+                ]);
+
+                $response[] = [
+                    'mensaje' => 'Orden de pedido persona creada con éxito',
+                    'data' => $request,
+                    'status' => 200
+                ];
+            }
+        }
+
+        return response()->json(['data'=> $ordenPedidoPersona, 'status' => 200],200);
+
+    }
+
     /**Función creada para modificar el estado entregado */
     public function modificarEstadoEntregado($id){
         OrdenPedidoPersona::where('id', $id)->update(['entregado' => true]);
@@ -85,14 +136,12 @@ class OrdenPedidoPersonaController extends Controller{
     /**Funcion para validar los datos */
     public function validateData($request){
         $reglas = [
-            'id_orden' => 'required',
             'prenda' => 'required',
             'nombre' => 'required',
             'cantidad' => 'required|integer|min:1',
         ];
 
         $mensajes = [
-            'id_orden.required' => 'El campo id_orden es requerido',
             'prenda.required' => 'El campo prenda es requerido',
             'nombre.required' => 'El campo nombre es requerido',
             'cantidad.required' => 'El campo cantidad es requerido',
