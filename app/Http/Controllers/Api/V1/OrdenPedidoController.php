@@ -116,7 +116,7 @@ class OrdenPedidoController extends Controller
                     $ordenPedidoPersonaController = app(OrdenPedidoPersonaController::class);
                     // Llama a registroOrdenPedidoPersona con los datos de las personas asociadas a la orden
                     $resultadoPersona = $ordenPedidoPersonaController->registroOrdenPedidoPersona($personas, $idOrden);
-                    dd($resultadoPersona);
+                    //dd($resultadoPersona);
 
 
                     if ($data->status === 200 ) {
