@@ -70,6 +70,8 @@ class OrdenPedidoController extends Controller
             // Decodifica el JSON enviado en el cuerpo de la solicitud
             $data = json_decode($request->getContent(), true);
 
+            dd($data);
+
             // Valida los datos de la orden
             $validador = $this->validarDatosOrden($data['orden']);
 
