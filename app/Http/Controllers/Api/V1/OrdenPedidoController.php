@@ -83,8 +83,6 @@ class OrdenPedidoController extends Controller
                 $factura = $orden['factura'];
                 $persona = $orden['persona'];
 
-                dd("Pasa los arrays");
-
                 // Crea la orden
                 $crearOrden = OrdenPedido::create($orden);
 
