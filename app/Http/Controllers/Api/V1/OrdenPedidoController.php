@@ -113,12 +113,10 @@ class OrdenPedidoController extends Controller
 
                     $data = $resultadoFactura->getData();
 
-                    $ordenPedidoPersona = app(OrdenPedidoPersonaController::class);
-                    $resultadoPedidoPersona = $ordenPedidoPersona->registroOrdenPedidoPersona($persona, $idOrden);
+                    $ordenPedidoPersonaController = app(OrdenPedidoPersonaController::class);
+                    $ordenPedidoPersonaController->registroOrdenPedidoPersona($persona, $idOrden);
 
-                    $dataPersona = $resultadoPedidoPersona->getData();
-
-                    if ($data->status === 200 || $dataPersona->status === 200 ) {
+                    if ($data->status === 200 ) {
                         // Confirma la transacción
                         DB::commit();
 
