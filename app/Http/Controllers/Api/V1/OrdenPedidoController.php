@@ -70,8 +70,6 @@ class OrdenPedidoController extends Controller
             // Decodifica el JSON enviado en el cuerpo de la solicitud
             $data = json_decode($request->getContent(), true);
 
-            dd($data);
-
             // Valida los datos de la orden
             $validador = $this->validarDatosOrden($data['orden']);
 
@@ -84,6 +82,8 @@ class OrdenPedidoController extends Controller
                 $detalles = $orden['detalles'];
                 $factura = $orden['factura'];
                 $persona = $orden['persona'];
+
+                dd("Pasa los arrays");
 
                 // Crea la orden
                 $crearOrden = OrdenPedido::create($orden);
