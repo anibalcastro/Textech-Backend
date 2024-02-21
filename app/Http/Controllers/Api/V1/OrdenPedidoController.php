@@ -83,8 +83,6 @@ class OrdenPedidoController extends Controller
                 $factura = $orden['factura'];
                 $persona = $orden['persona'];
 
-                dd($persona);
-
                 // Crea la orden
                 $crearOrden = OrdenPedido::create($orden);
 
