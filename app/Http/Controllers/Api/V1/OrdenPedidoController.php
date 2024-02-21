@@ -79,8 +79,6 @@ class OrdenPedidoController extends Controller
 
                 // Obtén la orden y los detalles del JSON
                 $orden = $data['orden'];
-                dd($orden);
-
                 $detalles = $orden['detalles'];
                 $factura = $orden['factura'];
                 $persona = $orden['persona'];
