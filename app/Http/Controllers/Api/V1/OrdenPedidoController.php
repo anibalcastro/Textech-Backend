@@ -83,6 +83,8 @@ class OrdenPedidoController extends Controller
                 $factura = $orden['factura'];
                 $persona = $orden['persona'];
 
+                dd($persona);
+
                 // Crea la orden
                 $crearOrden = OrdenPedido::create($orden);
 
@@ -113,8 +115,10 @@ class OrdenPedidoController extends Controller
 
                     $data = $resultadoFactura->getData();
 
+                    $ordenPedidoPersona = $persona;
+
                     $ordenPedidoPersonaController = app(OrdenPedidoPersonaController::class);
-                    $ordenPedidoPersonaController->registroOrdenPedidoPersona($persona, $idOrden);
+                    $ordenPedidoPersonaController->registroOrdenPedidoPersona($ordenPedidoPersona, $idOrden);
 
                     if ($data->status === 200 ) {
                         // Confirma la transacción
