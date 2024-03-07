@@ -15,6 +15,7 @@ use App\Http\Controllers\Api\V1\ProveedoresController;
 use App\Http\Controllers\Api\V1\ReparacionController;
 use App\Http\Controllers\Api\V1\ReportesController;
 use App\Http\Controllers\Api\V1\OrdenPedidoPersonaController;
+use App\Http\Controllers\Api\V1\SemanaController;
 
 
 
@@ -177,5 +178,15 @@ Route::get('v1/personas/',[OrdenPedidoPersonaController::class, 'index'])->middl
 Route::post('v1/personas/crear/',[OrdenPedidoPersonaController::class, 'crearOrdenPedidoPersona'])->middleware('jwt.auth');
 Route::get('v1/personas/modificar/estado/{id}',[OrdenPedidoPersonaController::class, 'modificarEstadoEntregado'])->middleware('jwt.auth');
 Route::get('v1/personas/orden/{id_orden}',[OrdenPedidoPersonaController::class, 'personasOrdenPedido'])->middleware('jwt.auth');
+
+
+/*************** */
+//Semanas
+Route::post('v1/generar/semanas/', [SemanaController::class, 'generarSemanasMensuales'])->middleware('jwt.auth');
+Route::post('v1/asignar/ordenes/semanas/', [SemanaController::class, 'asignarOrdenes'])->middleware('jwt.auth');
+Route::get('v1/eliminar/ordenes/semanas/{idTrabajoSemanal}', [SemanaController::class, 'eliminarOrdenes'])->middleware('jwt.auth');
+Route::get('v1/semanas/ordenes/', [SemanaController::class, 'retornarSemanasTrabajo'])->middleware('jwt.auth');
+Route::get('v1/semanas/', [SemanaController::class, 'retornarSemanas'])->middleware('jwt.auth');
+Route::get('v1/modificar/estado/trabajo/{id}', [SemanaController::class, 'cambiarEstado'])->middleware('jwt.auth');
 
 
