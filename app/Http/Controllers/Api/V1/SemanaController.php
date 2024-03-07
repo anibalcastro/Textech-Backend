@@ -171,8 +171,6 @@ class SemanaController extends Controller
     public function retornarSemanas () {
         $semanas = Semana::all();
 
-        dd($semanas);
-
         // Verificar si se encontraron semanas de trabajo
         if ($semanas->isEmpty()) {
             // Si no se encontraron semanas de trabajo, devolver un mensaje de error
