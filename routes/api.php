@@ -186,7 +186,7 @@ Route::post('v1/generar/semanas/', [SemanaController::class, 'generarSemanasMens
 Route::post('v1/asignar/ordenes/semanas/', [SemanaController::class, 'asignarOrdenes'])->middleware('jwt.auth');
 Route::get('v1/eliminar/ordenes/semanas/{idTrabajoSemanal}', [SemanaController::class, 'eliminarOrdenes'])->middleware('jwt.auth');
 Route::get('v1/semanas/ordenes/', [SemanaController::class, 'retornarSemanasTrabajo'])->middleware('jwt.auth');
-Route::get('v1/semanas/', [SemanaController::class, 'retornarSemanas'])->middleware('jwt.auth');
+Route::get('v1/semanas/', [SemanaController::class, 'retornarSemanas']);
 Route::get('v1/modificar/estado/trabajo/{id}', [SemanaController::class, 'cambiarEstado'])->middleware('jwt.auth');
 
 
