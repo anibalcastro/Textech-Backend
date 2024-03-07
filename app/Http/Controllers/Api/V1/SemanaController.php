@@ -8,6 +8,8 @@ use Illuminate\Http\Request;
 use App\Models\TrabajoSemanal;
 use Illuminate\Support\Facades\Validator;
 use App\Http\Controllers\Controller;
+use App\Http\Resources\V1\SemanasResource;
+
 
 class SemanaController extends Controller
 {
@@ -179,6 +181,10 @@ class SemanaController extends Controller
             // Si se encontraron semanas de trabajo, devolverlas como respuesta
             return response()->json(['data' => $semanas, 'status' => 200], 200);
         }
+    }
+
+    public function semana () {
+        return SemanasResource::collection(Semana::all());
     }
 
 
