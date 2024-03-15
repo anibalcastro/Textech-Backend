@@ -17,7 +17,8 @@ class ReparacionPrendas extends Model
         'fecha',
         'precio',
         'estado',
-        'comentario'
+        'comentario',
+        'telefono'
     ];
 
     public function detalleReparacion(){

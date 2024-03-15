@@ -23,7 +23,8 @@ class ReparacionPrendasResource extends JsonResource
             "fecha" => $this->fecha,
             "precio" => $this->precio,
             "estado" =>  $this->estado,
-            "comentario" => $this->comentario
+            "comentario" => $this->comentario,
+            "telefono" => $this->telefono
         ];
     }
 }
