@@ -363,7 +363,7 @@ class ReparacionController extends Controller
     public function actualizarEstadoReparacion(Request $request, $id_reparacion)
     {
         //Estados
-        $estados = ["Pendiente", "En Proceso", "Listo", "Entregado"];
+        $estados = ["Taller", "Entregado"];
 
         $nuevoEstado = $request->estado;
         $reparacion = ReparacionPrendas::find($id_reparacion);
