@@ -668,7 +668,7 @@ class OrdenPedidoController extends Controller
                 ];
             });
 
-            return response()->json($rutasArchivos);
+            return response()->json(["data" => $rutasArchivos, "status" => 200]);
         } else {
             return response()->json(['error' => 'Orden no encontrada'], 404);
         }
