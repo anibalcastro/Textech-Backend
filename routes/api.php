@@ -181,7 +181,7 @@ Route::get('v1/personas/',[OrdenPedidoPersonaController::class, 'index'])->middl
 Route::post('v1/personas/crear/',[OrdenPedidoPersonaController::class, 'crearOrdenPedidoPersona'])->middleware('jwt.auth');
 Route::get('v1/personas/modificar/estado/{id}',[OrdenPedidoPersonaController::class, 'modificarEstadoEntregado'])->middleware('jwt.auth');
 Route::get('v1/personas/orden/{id_orden}',[OrdenPedidoPersonaController::class, 'personasOrdenPedido'])->middleware('jwt.auth');
-Route::get('v1/personas/taller/{id}',[OrdenPedidoPersonaController::class, 'modificarEstadoTaller'])->middleware('jwt.auth');
+Route::get('v1/personas/taller/modificar/estado/{id}',[OrdenPedidoPersonaController::class, 'modificarEstadoTaller'])->middleware('jwt.auth');
 
 
 /*************** */
