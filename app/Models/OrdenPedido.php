@@ -27,4 +27,9 @@ class OrdenPedido extends Model
     public function detalles(){
         return $this->hasMany(DetallePedido::class,'id_pedido', 'id');
     }
+
+    public function archivos()
+{
+    return $this->hasMany(Archivos::class, 'order_id', 'id');
+}
 }

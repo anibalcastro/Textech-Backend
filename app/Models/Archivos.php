@@ -9,8 +9,15 @@ class Archivos extends Model
 {
     use HasFactory;
 
+    protected $table = 'files';
+
     protected $fillable = [
-        'id_mediciones',
-        'path'
+        'order_id',
+        'file_path'
     ];
+
+    public function order()
+    {
+        return $this->belongsTo(OrdenPedido::class, 'id');
+    }
 }

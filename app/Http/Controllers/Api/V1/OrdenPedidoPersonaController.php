@@ -99,6 +99,7 @@ class OrdenPedidoPersonaController extends Controller{
                     'nombre' => $item['nombre'],
                     'cantidad' => $item['cantidad'],
                     'entregado' => false, // Por defecto, el campo entregado se establece en false
+                    'taller' => false
                 ]);
 
                 $response[] = [
@@ -131,6 +132,12 @@ class OrdenPedidoPersonaController extends Controller{
         }
 
         return response()->json(['data'=>$ordenPedidoPersona, 'status' => 200],200);
+    }
+
+    public function modificarEstadoTaller($id){
+        OrdenPedidoPersona::where('id', $id)->update(['taller' => true]);
+
+        return response()->json(['mensaje' => 'Modificado con éxito', 'status' => 200],200);
     }
 
     /**Funcion para validar los datos */

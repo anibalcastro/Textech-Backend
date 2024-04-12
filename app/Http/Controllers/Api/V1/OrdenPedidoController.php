@@ -10,6 +10,7 @@ use App\Models\DetallePedido;
 
 use Illuminate\Support\Facades\DB;
 use App\Http\Controllers\Controller;
+use App\Models\Archivos;
 use Illuminate\Support\Facades\Validator;
 
 class OrdenPedidoController extends Controller
@@ -44,8 +45,7 @@ class OrdenPedidoController extends Controller
                 'facturas' => $factura,
                 'status' => 200
             ]);
-        }
-        else{
+        } else {
             return response()->json([
                 'mensaje' => 'Orden no encontrada',
                 'status' => 422
@@ -119,7 +119,7 @@ class OrdenPedidoController extends Controller
                     //dd($resultadoPersona);
 
 
-                    if ($data->status === 200 ) {
+                    if ($data->status === 200) {
                         // Confirma la transacción
                         DB::commit();
 
@@ -528,14 +528,15 @@ class OrdenPedidoController extends Controller
     }
 
     /**Cambia el estado de la pizarra */
-    public function cambiarEstadoPizarra($id_orden){
+    public function cambiarEstadoPizarra($id_orden)
+    {
         $orden = OrdenPedido::find($id_orden);
 
-        if (!$orden){
+        if (!$orden) {
             return response()->json([
                 'mensaje' => 'La orden no ha sido encontrada',
                 'status' => 422
-            ],422);
+            ], 422);
         }
 
         OrdenPedido::where('id', $id_orden)->update(['pizarra' => true]);
@@ -543,21 +544,19 @@ class OrdenPedidoController extends Controller
         return response()->json([
             'mensaje' => 'Se ha actualizado correctamente',
             'status' => 200
-        ],200);
-
-
-
+        ], 200);
     }
 
     /**Cambia el estado de la tela */
-    public function cambiarEstadoTelas($id_orden){
+    public function cambiarEstadoTelas($id_orden)
+    {
         $orden = OrdenPedido::find($id_orden);
 
-        if (!$orden){
+        if (!$orden) {
             return response()->json([
                 'mensaje' => 'La orden no ha sido encontrada',
                 'status' => 422
-            ],422);
+            ], 422);
         }
 
         OrdenPedido::where('id', $id_orden)->update(['tela' => true]);
@@ -565,8 +564,7 @@ class OrdenPedidoController extends Controller
         return response()->json([
             'mensaje' => 'Se ha actualizado correctamente',
             'status' => 200
-        ],200);
-
+        ], 200);
     }
 
 
@@ -652,4 +650,29 @@ class OrdenPedidoController extends Controller
 
         return true;
     }
+
+    public function getOrderFiles($orderId)
+    {
+        // Encuentra la orden por su ID
+        $order = OrdenPedido::find($orderId);
+
+        if ($order) {
+            // Accede a los archivos asociados a la orden
+            $archivos = $order->archivos;
+
+            // Preparar las rutas de los archivos para enviar al frontend
+            $rutasArchivos = $archivos->map(function ($archivo) {
+                return [
+                    'url' => asset('storage/archivos/' . $archivo->file_path),
+                    'file_path' => $archivo->file_path
+                ];
+            });
+
+            return response()->json($rutasArchivos);
+        } else {
+            return response()->json(['error' => 'Orden no encontrada'], 404);
+        }
+    }
+
+
 }

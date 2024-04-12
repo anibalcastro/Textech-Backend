@@ -16,7 +16,8 @@ class OrdenPedidoPersona extends Model
         'prenda',
         'nombre',
         'cantidad',
-        'entregado'
+        'entregado',
+        'taller'
     ];
 
     public function ordenPedido(){
