@@ -315,6 +315,8 @@ class OrdenPedidoController extends Controller
     public function modificarOrdenDetalle($detalles, $id_orden)
     {
         try {
+
+
             $modificacionCorrecta = [];
             $nuevoMonto = 0;
 
@@ -326,26 +328,17 @@ class OrdenPedidoController extends Controller
 
             foreach ($detalles as $item) {
                 // Verificar si el detalle existe en la base de datos
-                $detalleExistente = $detallePedido->where('id_producto', $item['id_producto'])
-                    ->where('descripcion', $item['descripcion'])
-                    ->first();
+                $detalleExistente = $detallePedido->where('id', $item['id'])->first();
 
                 if ($detalleExistente) {
                     // Actualizar el detalle existente
                     $resultado = $detalleExistente->update([
+                        'id_producto' => $item['id_producto'],
                         'precio_unitario' => $item['precio_unitario'],
                         'cantidad' => $item['cantidad'],
+                        'descripcion' => $item['descripcion'],
                         'subtotal' => $item['subtotal'],
                     ]);
-
-                    if ($resultado) {
-                        $nuevoMonto += $item['subtotal'];
-                        $modificacionCorrecta[] = $item;
-                        // Eliminar el detalle existente del arreglo de no actualizados
-                        $detallesNoActualizados = array_filter($detallesNoActualizados, function ($detalle) use ($item) {
-                            return !($detalle['id_producto'] === $item['id_producto'] && $detalle['descripcion'] === $item['descripcion']);
-                        });
-                    }
                 } else {
                     // Si el detalle no existe en la base de datos, agregarlo como un nuevo detalle
                     $detalleNuevo = new DetallePedido([
@@ -363,17 +356,6 @@ class OrdenPedidoController extends Controller
                         $nuevoMonto += $item['subtotal'];
                         $modificacionCorrecta[] = $item;
                     }
-                }
-            }
-
-            // Eliminar detalles existentes que no se actualizaron (productos eliminados)
-            foreach ($detallesNoActualizados as $detalleNoActualizado) {
-                $detalleExistente = $detallePedido->where('id_producto', $detalleNoActualizado['id_producto'])
-                    ->where('descripcion', $detalleNoActualizado['descripcion'])
-                    ->first();
-
-                if ($detalleExistente) {
-                    $detalleExistente->delete();
                 }
             }
 
