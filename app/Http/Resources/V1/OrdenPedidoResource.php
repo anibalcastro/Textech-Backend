@@ -16,6 +16,7 @@ class OrdenPedidoResource extends JsonResource
     {
         return[
             "id" => $this->id,
+            "proforma" => $this->proforma,
             "titulo" => $this->titulo,
             "id_empresa" => $this->id_empresa,
             "fecha_orden" => $this->fecha_orden,
