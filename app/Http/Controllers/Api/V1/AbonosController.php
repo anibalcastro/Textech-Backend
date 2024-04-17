@@ -17,7 +17,8 @@ class AbonosController extends Controller
         return AbonosResource::collection(Abonos::latest()->get());
     }
 
-    public function abonosPorFactura($idFactura){
+    public function abonosPorFactura($idFactura)
+    {
         return AbonosResource::collection(Abonos::where('factura_id', $idFactura)->get());
     }
 
@@ -79,6 +80,47 @@ class AbonosController extends Controller
         }
     }
 
+    public function abonoPorOrden($abono)
+    {
+
+        try {
+            //Crear nuevo objeto
+            $objAbono = new Abonos();
+
+            //Se llena el objeto
+            $objAbono->factura_id = $abono->factura_id;
+            $objAbono->monto = $abono->monto;
+            $objAbono->metodo_pago = $abono->metodo_pago;
+            $objAbono->comentarios = $abono->comentarios;
+            $objAbono->estado = $abono->estado;
+            $objAbono->cajero = $abono->cajero;
+
+            $validar = $this->validarDatosObj($objAbono);
+
+            if (!$validar) {
+                return response()->json([
+                    'error' => $validar,
+                    'mensaje' => 'Los datos ingresados no son correctos',
+                    'status' => 500
+                ]);
+            }
+
+            $objAbono->save();
+
+            return response()->json([
+                'data' => $objAbono,
+                'mensaje' => 'Abono aplicado con éxito',
+                'status' => 200
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'data' => $objAbono,
+                'mensaje' => 'Error al generar la factura: ' . $e->getMessage(),
+                'status' => 500,
+            ]);
+        }
+    }
+
     public function anularAbono(Request $request)
     {
         $consecutivoAbono = $request->abono_id;
@@ -127,7 +169,7 @@ class AbonosController extends Controller
             return response()->json([
                 'mensaje' => 'No existen abonos asociados a esa factura',
                 'status' => 422
-            ],422);
+            ], 422);
         } else {
             // Existen abonos relacionados con esta factura, puedes proceder a actualizar su estado.
             foreach ($abonos as $abono) {
@@ -138,7 +180,7 @@ class AbonosController extends Controller
             return response()->json([
                 'mensaje' => 'Abonos anulados',
                 'status' => 200
-            ],200);
+            ], 200);
         }
     }
 
@@ -179,6 +221,41 @@ class AbonosController extends Controller
             'numeric' => 'El campo :attribute debe ser un número.',
             'string' => 'El campo :attribute debe ser una cadena de texto.',
         ];
+
+        // Realiza la validación utilizando Validator
+        $validador = Validator::make($datos, $reglas, $mensajes);
+
+        // Comprueba si la validación falló
+        if ($validador->fails()) {
+            return $validador->errors()->all();
+        }
+
+        // Si la validación es exitosa, devuelve un true
+        return true;
+    }
+
+
+    public function validarDatosObj(Abonos $abono)
+    {
+        // Define las reglas de validación para los campos
+        $reglas = [
+            'factura_id' => 'required|integer',
+            'monto' => 'required|numeric',
+            'metodo_pago' => 'required|string',
+            'comentarios' => 'nullable|string',
+            'estado' => 'required|string',
+            'cajero' => 'required|string',
+        ];
+
+        // Define mensajes personalizados para los errores de validación
+        $mensajes = [
+            'required' => 'El campo :attribute es obligatorio.',
+            'integer' => 'El campo :attribute debe ser un número entero.',
+            'numeric' => 'El campo :attribute debe ser un número.',
+            'string' => 'El campo :attribute debe ser una cadena de texto.',
+        ];
+
+        $datos = $abono->toArray();
 
         // Realiza la validación utilizando Validator
         $validador = Validator::make($datos, $reglas, $mensajes);
