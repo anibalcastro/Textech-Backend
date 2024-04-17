@@ -20,13 +20,6 @@ class FacturasController extends Controller
         return FacturasResource::collection(Facturas::lasted()->first());
     }
 
-    /**
-     * Retorna facturas con sus abonos respectivos.
-     */
-    public function facturasAbonos()
-    {
-    }
-
     public function modificarFactura($id, $monto, $subtotal, $iva, $columna)
     {
         if ($columna == "orden_id") {
