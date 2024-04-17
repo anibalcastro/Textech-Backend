@@ -64,8 +64,7 @@ class OrdenPedidoController extends Controller
     /**
      * Create an order, detail and invoice.
      */
-    public function crearOrden(Request $request)
-    {
+    public function crearOrden(Request $request) {
         try {
             // Decodifica el JSON enviado en el cuerpo de la solicitud
             $data = json_decode($request->getContent(), true);
@@ -73,109 +72,94 @@ class OrdenPedidoController extends Controller
             // Valida los datos de la orden
             $validador = $this->validarDatosOrden($data['orden']);
 
-            if ($validador === true) {
-                // Iniciar una transacción de base de datos
-                DB::beginTransaction();
-
-                // Obtén la orden y los detalles del JSON
-                $orden = $data['orden'];
-                $detalles = $orden['detalles'];
-                $factura = $orden['factura'];
-                $personas = $orden['persona'];
-
-                // Crea la orden
-                $crearOrden = OrdenPedido::create($orden);
-
-                // Guarda la orden y obtén su ID
-                $idOrden = $crearOrden->id;
-
-                // Crea los detalles de la orden
-                $resultadoDetalles = $this->crearOrdenDetalle($detalles, $idOrden);
-
-                if ($resultadoDetalles) {
-
-                    $objFactura = new Facturas();
-                    $objFactura->order_id = $idOrden;
-                    $objFactura->reparacion_id = null;
-                    $objFactura->empresa_id = $factura[0]['id_empresa'];
-                    $objFactura->subtotal = $factura[0]['subtotal'];
-                    $objFactura->iva = $factura[0]['iva'];
-                    $objFactura->monto = $factura[0]['monto'];
-                    $objFactura->fecha = $this->obtenerFechaActual();
-                    $objFactura->metodo_pago = 'Pendiente';
-                    $objFactura->saldo_restante = $factura[0]['saldo_restante'];
-                    $objFactura->comentario = $factura[0]['comentario'];
-                    $objFactura->estado = 'Activo';
-                    $objFactura->cajero = $factura[0]['cajero'];
-
-                    $facturaController = app(FacturasController::class);
-                    $resultadoFactura = $facturaController->generarFactura($objFactura);
-
-                    $data = $resultadoFactura->getData();
-
-                    $ordenPedidoPersonaController = app(OrdenPedidoPersonaController::class);
-                    // Llama a registroOrdenPedidoPersona con los datos de las personas asociadas a la orden
-                    $resultadoPersona = $ordenPedidoPersonaController->registroOrdenPedidoPersona($personas, $idOrden);
-                    //dd($resultadoPersona);
-
-
-                    if ($data->status === 200) {
-                        // Confirma la transacción
-                        DB::commit();
-
-                        $idFactura = $this->obtenerUltimoIdFactura();
-
-                        // Usar find para obtener la orden de pedido por ID
-                        $ordenPedido = OrdenPedido::find($idOrden);
-
-                        $ordenPedido->id_factura = $idFactura;
-
-                        $resultado = $ordenPedido->update();
-
-                        if ($resultado) {
-
-                            return response()->json([
-                                'mensaje' => 'Orden creada con éxito',
-                                'orden' => $orden,
-                                'status' => 200
-                            ], 200);
-                        } else {
-
-                            // Si ocurre una excepción, revierte la transacción (si se inició)
-                            if (DB::transactionLevel() > 0) {
-                                DB::rollBack();
-                            }
-
-                            return response()->json([
-                                'mensaje' => 'No se pudo obtener la ultima factura',
-                                'status' => 500
-                            ]);
-                        }
-                    }
-                } else {
-                    // Si ocurre un error, revierte la transacción
-                    DB::rollBack();
-
-                    return response()->json([
-                        'mensaje' => 'Error al crear la orden de detalle',
-                        'status' => 500
-                    ], 500);
-                }
-            } else {
+            if ($validador !== true) {
                 return response()->json([
                     'mensaje' => 'Los datos ingresados son incorrectos',
                     'error' => $validador,
-                    'status' => 422 // Código de estado para datos no procesables (Unprocessable Entity)
+                    'status' => 422 // Código de estado para datos no procesables
                 ], 422);
             }
+
+            // Iniciar una transacción de base de datos
+            DB::beginTransaction();
+
+            // Obtén los datos de la orden desde el JSON
+            $orden = $data['orden'];
+            $detalles = $orden['detalles'];
+            $factura = $orden['factura'];
+            $personas = $orden['persona'];
+
+            // Crea la orden
+            $crearOrden = OrdenPedido::create($orden);
+            $idOrden = $crearOrden->id;
+
+            // Crea los detalles de la orden
+            $resultadoDetalles = $this->crearOrdenDetalle($detalles, $idOrden);
+
+            if (!$resultadoDetalles) {
+                DB::rollBack();
+                return response()->json([
+                    'mensaje' => 'Error al crear los detalles de la orden',
+                    'status' => 500
+                ], 500);
+            }
+
+            // Crea la factura asociada a la orden
+            $objFactura = new Facturas();
+            $objFactura->order_id = $idOrden;
+            // Configura los campos de la factura con los datos correspondientes
+            $objFactura->reparacion_id = null;
+            $objFactura->empresa_id = $factura[0]['id_empresa'];
+            $objFactura->subtotal = $factura[0]['subtotal'];
+            $objFactura->iva = $factura[0]['iva'];
+            $objFactura->monto = $factura[0]['monto'];
+            $objFactura->fecha = $this->obtenerFechaActual();
+            $objFactura->metodo_pago = 'Pendiente';
+            $objFactura->saldo_restante = $factura[0]['saldo_restante'];
+            $objFactura->comentario = $factura[0]['comentario'];
+            $objFactura->estado = 'Activo';
+            $objFactura->cajero = $factura[0]['cajero'];
+
+            // Genera la factura utilizando el controlador correspondiente
+            $facturaController = app(FacturasController::class);
+            $resultadoFactura = $facturaController->generarFactura($objFactura);
+            $dataFactura = $resultadoFactura->getData();
+
+            if ($dataFactura->status !== 200) {
+                DB::rollBack();
+                return response()->json([
+                    'mensaje' => 'Error al crear la factura',
+                    'status' => 500
+                ], 500);
+            }
+
+            // Asocia las personas a la orden
+            $ordenPedidoPersonaController = app(OrdenPedidoPersonaController::class);
+            $ordenPedidoPersonaController->registroOrdenPedidoPersona($personas, $idOrden);
+
+            // Obtén el ID de la última factura generada
+            $idFactura = $this->obtenerUltimoIdFactura();
+
+            // Actualiza la orden con la referencia de la factura
+            $ordenPedido = OrdenPedido::find($idOrden);
+            $ordenPedido->id_factura = $idFactura;
+            $ordenPedido->update();
+
+            // Confirma la transacción si todo fue exitoso
+            DB::commit();
+
+            return response()->json([
+                'mensaje' => 'Orden creada con éxito',
+                'orden' => $orden,
+                'status' => 200
+            ], 200);
         } catch (\Exception $e) {
-            // Si ocurre una excepción, revierte la transacción (si se inició)
+            // Si ocurre una excepción, revierte la transacción
             if (DB::transactionLevel() > 0) {
                 DB::rollBack();
             }
 
             return response()->json([
-                'dataOrden' => $data,
                 'mensaje' => 'Error al registrar la orden',
                 'error' => $e->getMessage(),
                 'status' => 500
@@ -183,9 +167,7 @@ class OrdenPedidoController extends Controller
         }
     }
 
-    /**
-     * Create an order detail
-     */
+    /*
     public function crearOrdenDetalle($detalles, $idOrden)
     {
         $detallePedidoValido = [];
@@ -224,6 +206,27 @@ class OrdenPedidoController extends Controller
         } else {
             return ['detalleIncorrecto' => $detallePedidoIncorrecto, 'resultado' => false];
         }
+    }
+    */
+
+    public function crearOrdenDetalle($detalles, $idOrden){
+        foreach ($detalles as $detalle) {
+            $objDetalle = new DetallePedido();
+
+            // Asegúrate de acceder a los elementos como índices de un array, no como propiedades de un objeto
+            $objDetalle->id_pedido = $idOrden;
+            $objDetalle->id_producto = $detalle['id_producto'];
+            $objDetalle->precio_unitario = $detalle['precio_unitario'];
+            $objDetalle->cantidad = $detalle['cantidad'];
+            $objDetalle->descripcion = $detalle['descripcion'];
+            $objDetalle->subtotal = $detalle['subtotal'];
+
+            // Guarda el objeto DetallePedido en la base de datos
+            $objDetalle->save();
+        }
+
+        // Retorna true si se completó con éxito
+        return true;
     }
 
     /**
@@ -322,9 +325,6 @@ class OrdenPedidoController extends Controller
 
             // Obtener los detalles de pedido existentes para el pedido en cuestión
             $detallePedido = DetallePedido::where('id_pedido', $id_orden)->get();
-
-            // Crear un arreglo para realizar un seguimiento de los detalles existentes que no se actualizarán
-            $detallesNoActualizados = $detallePedido->toArray();
 
             foreach ($detalles as $item) {
                 // Verificar si el detalle existe en la base de datos
@@ -633,6 +633,8 @@ class OrdenPedidoController extends Controller
         return true;
     }
 
+
+
     public function getOrderFiles($orderId)
     {
         // Encuentra la orden por su ID
@@ -655,6 +657,4 @@ class OrdenPedidoController extends Controller
             return response()->json(['error' => 'Orden no encontrada'], 404);
         }
     }
-
-
 }
