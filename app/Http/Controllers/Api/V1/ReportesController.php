@@ -86,7 +86,7 @@ class ReportesController extends Controller
     public function generarDetallePedido($id_pedido)
     {
         $encabezadoPedido = DB::table('orden_pedido as op')
-            ->select('op.id', 'op.titulo', 'e.nombre_empresa', 'e.telefono_encargado', 'op.estado', 'op.fecha_orden', 'f.cajero')
+            ->select('op.id','op.proforma' ,'op.titulo', 'e.nombre_empresa', 'e.telefono_encargado', 'op.estado', 'op.fecha_orden', 'f.cajero')
             ->join('facturas as f', 'f.id', '=', 'op.id_factura')
             ->join('empresas as e', 'e.id', '=', 'op.id_empresa')
             ->where('op.id', '=', $id_pedido)
@@ -228,7 +228,7 @@ class ReportesController extends Controller
     public function detallePagoPedido($id_pedido)
     {
         $encabezadoPedido = DB::table('orden_pedido as op')
-            ->select('op.id', 'op.titulo', 'e.nombre_empresa', 'e.telefono_encargado', 'op.estado', 'op.fecha_orden', 'f.cajero')
+            ->select('op.id', 'op.proforma' ,'op.titulo', 'e.nombre_empresa', 'e.telefono_encargado', 'op.estado', 'op.fecha_orden', 'f.cajero')
             ->join('facturas as f', 'f.id', '=', 'op.id_factura')
             ->join('empresas as e', 'e.id', '=', 'op.id_empresa')
             ->where('op.id', '=', $id_pedido)

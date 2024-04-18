@@ -112,6 +112,9 @@
                     <p class="descripcion">Consecutivo: #<strong>{{ $encabezadoPedido->id }}</strong></p>
                 </li>
                 <li>
+                    <p class="descripcion">Proforma: #<strong>{{ $encabezadoPedido->proforma }}</strong></p>
+                </li>
+                <li>
                     <p class="descripcion">Fecha: <strong>{{ $encabezadoPedido->fecha_orden }}</strong></p>
                 </li>
 
