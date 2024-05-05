@@ -498,7 +498,7 @@ class OrdenPedidoController extends Controller
         foreach ($ordenes as $orden) {
             if ($orden->estado === "Taller") {
                 $cantidad_taller++;
-            } elseif ($orden->estado === "Entrega tienda") {
+            } elseif ($orden->estado === "Entrega Tienda") {
                 $cantidad_entrega_tienda++;
             } elseif ($orden->estado === "Entregada al cliente") {
                 $cantidad_entrega_cliente++;
