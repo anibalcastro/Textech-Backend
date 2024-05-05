@@ -244,11 +244,10 @@ class OrdenPedidoController extends Controller
     public function modificarOrden(Request $request, $id_orden)
     {
         try {
-            //code...
-            //get data
             $data = json_decode($request->getContent(), true);
 
             $ordenArray = $data["orden"];
+            $proforma = $ordenArray["proforma"];
             $detalles = $ordenArray["detalles"];
 
             //Get a order...
@@ -262,6 +261,11 @@ class OrdenPedidoController extends Controller
                     "status" => 404
                 ], 404);
             }
+
+            $orden->proforma = $proforma;
+
+            // Guardar los cambios en la base de datos
+            $orden->save();
 
             $facturaController = app(FacturasController::class);
             $nuevoMonto = $data["orden"]["factura"][0]["monto"];
