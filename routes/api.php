@@ -197,5 +197,6 @@ Route::get('v1/modificar/estado/trabajo/{id}', [SemanaController::class, 'cambia
 /************* */
 //Archivos
 Route::post('v1/files/upload-file', [ArchivosController::class, 'store']);
+Route::delete('v1/files/delete/{name}', [ArchivosController::class, 'delete']);
 
 
