@@ -55,17 +55,17 @@ class ArchivosController extends Controller
                     return response()->json(['message' => 'Archivo y entrada de base de datos eliminados con éxito.', 'status' => 200], 200);
                 } else {
                     // Si la eliminación del archivo falla
-                    return response()->json(['message' => 'Error al eliminar el archivo del sistema de archivos.'], 500);
+                    return response()->json(['message' => 'Error al eliminar el archivo del sistema de archivos.', 'status' => 500], 500);
                 }
             } else {
                 // Si el archivo no existe en el sistema de archivos
                 // Eliminar la entrada correspondiente de la base de datos
                 $archivo->delete();
-                return response()->json(['message' => 'La entrada de la base de datos fue eliminada ya que el archivo no existe en el sistema de archivos.'], 200);
+                return response()->json(['message' => 'La entrada de la base de datos fue eliminada ya que el archivo no existe en el sistema de archivos.', 'status' => 200], 200);
             }
         } else {
             // Si no se encuentra la entrada del archivo en la base de datos
-            return response()->json(['message' => 'La entrada del archivo no existe en la base de datos.'], 404);
+            return response()->json(['message' => 'La entrada del archivo no existe en la base de datos.' ,'status' => 404], 404);
         }
     }
 
