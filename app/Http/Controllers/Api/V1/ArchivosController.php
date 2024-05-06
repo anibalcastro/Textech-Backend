@@ -52,7 +52,7 @@ class ArchivosController extends Controller
                 if (unlink($filePath)) {
                     // Eliminar la entrada correspondiente de la base de datos
                     $archivo->delete();
-                    return response()->json(['message' => 'Archivo y entrada de base de datos eliminados con éxito.'], 200);
+                    return response()->json(['message' => 'Archivo y entrada de base de datos eliminados con éxito.', 'status' => 200], 200);
                 } else {
                     // Si la eliminación del archivo falla
                     return response()->json(['message' => 'Error al eliminar el archivo del sistema de archivos.'], 500);
