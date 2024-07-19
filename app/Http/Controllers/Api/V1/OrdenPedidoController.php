@@ -247,7 +247,10 @@ class OrdenPedidoController extends Controller
             $data = json_decode($request->getContent(), true);
 
             $ordenArray = $data["orden"];
+            $titulo = $ordenArray["titulo"];
             $proforma = $ordenArray["proforma"];
+            $proforma2 = $ordenArray["proforma2"];
+            $proforma3 = $ordenArray["proforma3"];
             $detalles = $ordenArray["detalles"];
 
             //Get a order...
@@ -262,7 +265,10 @@ class OrdenPedidoController extends Controller
                 ], 404);
             }
 
+            $orden->titulo = $titulo;
             $orden->proforma = $proforma;
+            $orden->proforma2 = $proforma2;
+            $orden->proforma3 = $proforma3;
 
             // Guardar los cambios en la base de datos
             $orden->save();
