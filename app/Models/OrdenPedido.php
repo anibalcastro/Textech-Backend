@@ -15,6 +15,8 @@ class OrdenPedido extends Model
     protected $fillable = [
         'id',
         'proforma',
+        'proforma2',
+        'proforma3',
         'titulo',
         'id_empresa',
         'fecha_orden',

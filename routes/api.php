@@ -97,7 +97,7 @@ Route::post('v1/ordenes/anular/{id_orden}', [App\Http\Controllers\Api\V1\OrdenPe
 Route::get('v1/orden/pizarra/{id_orden}', [App\Http\Controllers\Api\V1\OrdenPedidoController::class, 'cambiarEstadoPizarra'])->middleware('jwt.auth');
 Route::get('v1/orden/tela/{id_orden}', [App\Http\Controllers\Api\V1\OrdenPedidoController::class, 'cambiarEstadoTelas'])->middleware('jwt.auth');
 Route::get('v1/orders/{id}/files', [App\Http\Controllers\Api\V1\OrdenPedidoController::class, 'getOrderFiles']);
-
+Route::get('v1/entregado/orden/modificar/estado/{detalleId}',[App\Http\Controllers\Api\V1\OrdenPedidoController::class, 'actualizarEstadoDetallePedido'])->middleware('jwt.auth');
 
 /**************** */
 //Ruta de Facturas

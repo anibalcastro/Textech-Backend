@@ -20,7 +20,8 @@ class DetallePedido extends Model
         'precio_unitario',
         'cantidad',
         'descripcion',
-        'subtotal'
+        'subtotal',
+        'entregado'
     ];
 
     public function orden_pedido(){

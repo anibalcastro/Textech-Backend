@@ -21,7 +21,8 @@ class OrdenDetalleResource extends JsonResource
             "precio_unitario" => $this->precio_unitario,
             "cantidad" => $this->cantidad,
             "descripcion" => $this->descripcion,
-            "subtotal" => $this->subtotal
+            "subtotal" => $this->subtotal,
+            "entregado" => $this->entregado
         ];
     }
 }

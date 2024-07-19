@@ -661,4 +661,13 @@ class OrdenPedidoController extends Controller
             return response()->json(['error' => 'Orden no encontrada'], 404);
         }
     }
+
+    /**
+     * Se actualiza el entregado a true del detalle del pedido.
+     * Se recibe la identificacion del detalle de la orden.
+     */
+    public function actualizarEstadoDetallePedido ($detalleId) {
+        DetallePedido::where('id', $detalleId)->update(['entregado' => true]);
+        return response()->json(['mensaje' => 'Modificado con exito' , 'status' => 200],200);
+    }
 }
