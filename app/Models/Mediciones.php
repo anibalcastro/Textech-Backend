@@ -34,7 +34,15 @@ class Mediciones extends Model
         'talla',
         'fecha',
         'observaciones',
-        'sastre'
+        'sastre',
+        'ancho_espalda_superior',
+        'largo_total_espalda_superior',
+        'separacion_busto_superior',
+        'hombros_superior',
+        'puno_superior',
+        'altura_cadera_inferior',
+        'altura_rodilla_inferior',
+        'contorno_tiro_inferior',
     ];
 
     public function cliente()

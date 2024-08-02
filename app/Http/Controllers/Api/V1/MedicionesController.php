@@ -270,6 +270,14 @@ class MedicionesController extends Controller
             'alto_pinza_superior' => 'nullable',
             'fecha' => 'required',
             'observaciones' => 'nullable|string',
+            'ancho_espalda_superior' => 'nullable',
+            'largo_total_espalda_superior' => 'nullable',
+            'separacion_busto_superior' => 'nullable',
+            'hombros_superior' => 'nullable',
+            'puno_superior' => 'nullable',
+            'altura_cadera_inferior' => 'nullable',
+            'altura_rodilla_inferior' => 'nullable',
+            'contorno_tiro_inferior' => 'nullable',
         ];
 
         //Mensajes
