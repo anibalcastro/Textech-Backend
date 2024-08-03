@@ -252,6 +252,7 @@ class OrdenPedidoController extends Controller
             $proforma2 = $ordenArray["proforma2"];
             $proforma3 = $ordenArray["proforma3"];
             $detalles = $ordenArray["detalles"];
+            $personas = $ordenArray["personas"];
 
             //Get a order...
             $orden = OrdenPedido::find($id_orden);
@@ -280,9 +281,10 @@ class OrdenPedidoController extends Controller
 
             //Id orden, monto, subtotal, iva
             $modificacionFactura = $facturaController->modificarFactura($id_orden, $nuevoMonto, $nuevoSubtotal, $nuevoIva, "orden_id");
-
-
             $resultadoFactura = $modificacionFactura->getData();
+
+            $ordenPedidoPersonaController = app(OrdenPedidoPersonaController::class);
+            $ordenPedidoPersonaController->registroOrdenPedidoPersona($personas, $id_orden);
 
             if ($resultadoFactura->status === 200) {
                 //Result of the function ${modificarOrdenDetalle}
