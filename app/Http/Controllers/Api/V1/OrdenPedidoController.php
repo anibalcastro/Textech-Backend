@@ -283,9 +283,17 @@ class OrdenPedidoController extends Controller
             $modificacionFactura = $facturaController->modificarFactura($id_orden, $nuevoMonto, $nuevoSubtotal, $nuevoIva, "orden_id");
             $resultadoFactura = $modificacionFactura->getData();
 
-            if (!empty($personas)){
-                $ordenPedidoPersonaController = app(OrdenPedidoPersonaController::class);
-                $ordenPedidoPersonaController->registroOrdenPedidoPersona($personas, $id_orden);
+            if (!empty($personas) && count($personas) > 0) {
+                // Filtrar personas con campos vacíos
+                $personasValidas = array_filter($personas, function($persona) {
+                    return !empty($persona['nombre']) && !empty($persona['prenda']) && !empty($persona['cantidad']);
+                });
+
+                // Verificar si después de filtrar quedan personas válidas
+                if (count($personasValidas) > 0) {
+                    $ordenPedidoPersonaController = app(OrdenPedidoPersonaController::class);
+                    $ordenPedidoPersonaController->registroOrdenPedidoPersona($personasValidas, $id_orden);
+                }
             }
 
             if ($resultadoFactura->status === 200) {
