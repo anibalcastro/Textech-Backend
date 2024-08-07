@@ -340,14 +340,23 @@ class OrdenPedidoController extends Controller
     public function modificarOrdenDetalle($detalles, $id_orden)
     {
         try {
-
-
             $modificacionCorrecta = [];
             $nuevoMonto = 0;
 
             // Obtener los detalles de pedido existentes para el pedido en cuestión
             $detallePedido = DetallePedido::where('id_pedido', $id_orden)->get();
 
+            // Crear una lista de los IDs de los detalles en la nueva lista
+            $detallesNuevosIds = collect($detalles)->pluck('id')->toArray();
+
+            // Eliminar los detalles que no están en la nueva lista
+            foreach ($detallePedido as $detalle) {
+                if (!in_array($detalle->id, $detallesNuevosIds)) {
+                    $detalle->delete();
+                }
+            }
+
+            // Procesar la nueva lista de detalles
             foreach ($detalles as $item) {
                 // Verificar si el detalle existe en la base de datos
                 $detalleExistente = $detallePedido->where('id', $item['id'])->first();
@@ -398,7 +407,6 @@ class OrdenPedidoController extends Controller
             ]);
         }
     }
-
 
     /**
      * Función para actualizar el estado del pedido.
