@@ -43,7 +43,6 @@ class Mediciones extends Model
         'altura_cadera_inferior',
         'altura_rodilla_inferior',
         'contorno_tiro_inferior',
-        'altura_cadera_inferior',
     ];
 
     public function cliente()
