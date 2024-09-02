@@ -21,6 +21,7 @@ class MedicionesResource extends JsonResource
             'largo_inferior'=> $this->largo_inferior,
             'cintura_inferior' => $this->cintura_inferior,
             'cadera_inferior' => $this->cadera_inferior,
+            'altura_cadera_inferior' => $this->altura_cadera_inferior,
             'pierna_inferior' => $this->pierna_inferior,
             'rodilla_inferior' => $this->rodilla_inferior,
             'ruedo_inferior' => $this->ruedo_inferior,
