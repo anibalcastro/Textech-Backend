@@ -234,6 +234,9 @@ class ReparacionController extends Controller
             $nuevoMonto = $data['reparacion']['factura'][0]['monto'];
             $nuevoSubtotal = $data['reparacion']['factura'][0]['subtotal'];
             $nuevoIva = $data['reparacion']['factura'][0]['iva'];
+            $nuevoTitulo = $data['reparacion']['titulo'];
+            $nuevoTelefono = $data['reparacion']['telefono'];
+
 
             $modificacionFactura = $facturaController->modificarFactura($id_reparacion, $nuevoMonto, $nuevoSubtotal, $nuevoIva, "reparacion_id");
 
@@ -242,11 +245,13 @@ class ReparacionController extends Controller
 
             if ($resultadoFactura->status === 200) {
 
+                $modificacionEncabezado = $this->modificarEncabezadoReparacion($nuevoTitulo, $nuevoTelefono, $id_reparacion);
                 $modificacionDetalle = $this->modificarDetalleReparacion($detalles, $id_reparacion);
 
                 $resultadoDetalle = $modificacionDetalle->getData();
+                $resultadoEncabezado = $modificacionEncabezado->getData();
 
-                if ($resultadoDetalle->status === 200) {
+                if ($resultadoDetalle->status === 200 || $resultadoEncabezado->status === 200) {
 
                     $nuevoMontoTotal = $resultadoDetalle->nuevoMonto;
                     $reparacion->update(['monto' => $nuevoMontoTotal]);
@@ -357,6 +362,23 @@ class ReparacionController extends Controller
                 'error' => $e->getMessage(),
             ]);
         }
+    }
+
+    /**
+     * Modificar encabezado
+     * TITULO DE LA REPARACION
+     * TELEFONO DEL USUARIO A LA REPARACION
+     */
+    public function modificarEncabezadoReparacion($titulo, $telefono, $id_reparacion){
+
+        $reparacion = ReparacionPrendas::find($id_reparacion);
+        $reparacion->update(['titulo' => $titulo, 'telefono'=> $telefono]);
+
+
+        return response()->json([
+            "mensaje"=> "Encabezado actualizado",
+            "status" => 200
+        ]);
     }
 
     /**Metodo para actualizar el estado de la reparación */
@@ -485,13 +507,6 @@ class ReparacionController extends Controller
         ], 200);
     }
 
-    public function generarProforma()
-    {
-    }
-
-    public function enviarCorreo()
-    {
-    }
 
     /**Metodo para validar los datos de la reparacion */
     public function validarDatosReparacion($request)

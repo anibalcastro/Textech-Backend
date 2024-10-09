@@ -133,7 +133,7 @@ Route::apiResource('v1/reparaciones', ReparacionController::class)->only((['inde
 Route::get('v1/reparacion/{reparacion_id}', [App\Http\Controllers\Api\V1\ReparacionController::class, 'reparacionDetalleFactura'])->middleware('jwt.auth');
 Route::get('v1/reparaciones/cantidad' , [App\Http\Controllers\Api\V1\ReparacionController::class, 'cantidadReparacion'])->middleware('jwt.auth');
 Route::post('v1/reparacion/registrar',[App\Http\Controllers\Api\V1\ReparacionController::class, 'crearReparacion'])->middleware('jwt.auth');
-Route::post('v1/reparacion/editar/{reparacion_id}',[App\Http\Controllers\Api\V1\ReparacionController::class, 'modificarReparacion'])->middleware('jwt.auth');
+Route::post('v1/reparacion/editar/{reparacion_id}',[App\Http\Controllers\Api\V1\ReparacionController::class, 'modificarReparacion']);
 Route::post('v1/reparacion/estado/editar/{reparacion_id}',[App\Http\Controllers\Api\V1\ReparacionController::class, 'actualizarEstadoReparacion'])->middleware('jwt.auth');
 Route::post('v1/reparacion/anular/{reparacion_id}',[App\Http\Controllers\Api\V1\ReparacionController::class, 'anularReparacion'])->middleware('jwt.auth');
 
