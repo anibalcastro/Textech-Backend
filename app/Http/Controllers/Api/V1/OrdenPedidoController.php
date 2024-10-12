@@ -251,6 +251,7 @@ class OrdenPedidoController extends Controller
             $proforma = $ordenArray["proforma"];
             $proforma2 = $ordenArray["proforma2"];
             $proforma3 = $ordenArray["proforma3"];
+            $telefono = $ordenArray["telefono"];
             $detalles = $ordenArray["detalles"];
             $personas = $ordenArray["personas"];
 
@@ -270,6 +271,7 @@ class OrdenPedidoController extends Controller
             $orden->proforma = $proforma;
             $orden->proforma2 = $proforma2;
             $orden->proforma3 = $proforma3;
+            $orden->telefono = $telefono;
 
             // Guardar los cambios en la base de datos
             $orden->save();
