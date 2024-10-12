@@ -21,6 +21,7 @@ class OrdenPedidoResource extends JsonResource
             "proforma3" => $this->proforma3,
             "titulo" => $this->titulo,
             "id_empresa" => $this->id_empresa,
+            "telefono" => $this->telefono,
             "fecha_orden" => $this->fecha_orden,
             "precio_total" => $this->precio_total,
             "estado" =>  $this->estado

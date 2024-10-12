@@ -19,6 +19,7 @@ class OrdenPedido extends Model
         'proforma3',
         'titulo',
         'id_empresa',
+        'telefono',
         'fecha_orden',
         'precio_total',
         'estado',
