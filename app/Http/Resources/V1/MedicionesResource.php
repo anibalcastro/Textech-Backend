@@ -41,7 +41,9 @@ class MedicionesResource extends JsonResource
             'talla' =>$this->talla,
             'fecha' => $this->fecha,
             'observaciones' => $this->observaciones,
-            'sastre' => $this->sastre
+            'sastre' => $this->sastre,
+            'tiro_largo_ya_inferior' => $this->tiro_largo_ya_inferior
+
         ];
     }
 }

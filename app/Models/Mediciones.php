@@ -5,6 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
+
 class Mediciones extends Model
 {
     use HasFactory;
@@ -43,6 +44,8 @@ class Mediciones extends Model
         'altura_cadera_inferior',
         'altura_rodilla_inferior',
         'contorno_tiro_inferior',
+        'tiro_largo_ya_inferior'
+
     ];
 
     public function cliente()
