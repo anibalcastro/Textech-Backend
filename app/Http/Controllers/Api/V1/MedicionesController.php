@@ -44,11 +44,13 @@ class MedicionesController extends Controller
     {
         if ($mediciones->delete()) {
             return response()->json([
-                'mensaje' => 'Con exito', 204
+                'mensaje' => 'Con exito',
+                204
             ]);
         }
         return response()->json([
-            'mensaje' => 'No se encuentra', 404
+            'mensaje' => 'No se encuentra',
+            404
         ]);
     }
 
@@ -95,7 +97,7 @@ class MedicionesController extends Controller
             $validar = $this->validateData($request);
 
             //Nombre del cliente
-            $cliente = Clientes::where('id' , $request->id_cliente)->first();
+            $cliente = Clientes::where('id', $request->id_cliente)->first();
             $nombreCliente = $cliente ? $cliente->nombre . ' ' . $cliente->apellido1 . ' ' . $cliente->apellido2 : null;
 
             // Verifica si el artículo ya existe en las mediciones del cliente
@@ -141,7 +143,6 @@ class MedicionesController extends Controller
                     ], 422);
                 }
             }
-
         } catch (\Exception $e) {
             // Rollback en caso de excepción
             DB::rollBack();
@@ -212,24 +213,34 @@ class MedicionesController extends Controller
      */
     public function retornarMedicionesCliente($id_cliente)
     {
-
-        //Resultado de la consulta donde id_cliente es igual al parametro.
-        $resultado = Mediciones::where('id_cliente', $id_cliente)->get();
-
-        //Valida si el resultado es vacio
-        if (empty($resultado)) {
-
-            //Retorna una respuesta
+        if (!is_numeric($id_cliente) || $id_cliente <= 0) {
             return response()->json([
-                'mensaje' => 'No se encontró ningun usuario'
-            ], 404);
+                'mensaje' => 'ID de cliente inválido'
+            ], 400);
         }
+        try {
+            //Resultado de la consulta donde id_cliente es igual al parametro.
+            $resultado = Mediciones::where('id_cliente', $id_cliente)->get(['id', 'articulo', 'fecha']);
 
-        // Retorna la informacion del cliente con todas las medidas
-        return response()->json([
-            'data' => $resultado,
-            'mensaje' => 'Mediciones del cliente'
-        ], 200);
+            // Valida si el resultado está vacío
+            if ($resultado->isEmpty()) {
+                return response()->json([
+                    'mensaje' => 'No se encontró ningún usuario'
+                ], 404);
+            }
+
+            // Retorna la informacion del cliente con todas las medidas
+            return response()->json([
+                'data' => $resultado,
+                'mensaje' => 'Mediciones del cliente'
+            ], 200);
+        } catch (\Exception $e) {
+            // Manejo de excepciones generales
+            return response()->json([
+                'mensaje' => 'Error en la consulta',
+                'error' => $e->getMessage()
+            ], 500);
+        }
     }
 
     /**Función para obtener cantidad de mediciones */
@@ -309,7 +320,7 @@ class MedicionesController extends Controller
         $fecha = Carbon::now()->format('d/m/Y H:i:s');
 
         // Crear la estructura del mensaje a guardar en el archivo
-        $mensaje = "fecha: " . $fecha ." | error: ". $error ." |  cliente: " . $cliente . " | datos: " . json_encode($request->all(), JSON_PRETTY_PRINT);
+        $mensaje = "fecha: " . $fecha . " | error: " . $error . " |  cliente: " . $cliente . " | datos: " . json_encode($request->all(), JSON_PRETTY_PRINT);
 
 
         $filename = "error_logs_mediciones.txt";
