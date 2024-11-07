@@ -253,6 +253,41 @@ class MedicionesController extends Controller
         ], 200);
     }
 
+
+    /**Retorna medicion por Id */
+    public function medidaId($id)
+    {
+
+        if (!is_numeric($id) || $id <= 0) {
+            return response()->json([
+                'mensaje' => 'ID de cliente inválido'
+            ], 400);
+        }
+
+        try {
+            $resultado = Mediciones::where('id', $id)->get();
+
+            // Valida si el resultado está vacío
+            if ($resultado->isEmpty()) {
+                return response()->json([
+                    'mensaje' => 'No se encontró ninguna medicion'
+                ], 404);
+            }
+
+            // Retorna la información del cliente con todas las medidas
+            return response()->json([
+                'data' => $resultado,
+                'mensaje' => "Mediciones con identificador $id"
+            ], 200);
+        } catch (\Exception $e) {
+            // Manejo de excepciones generales
+            return response()->json([
+                'mensaje' => 'Error en la consulta',
+                'error' => $e->getMessage()
+            ], 500);
+        }
+    }
+
     /**
      * Funcion para validar los datos que vienen en el request.
      */
