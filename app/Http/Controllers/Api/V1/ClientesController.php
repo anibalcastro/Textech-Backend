@@ -160,7 +160,7 @@ class ClientesController extends Controller
     public function obtenerCliente($id)
     {
         try {
-            $cliente = Clientes::find($id)->first(); // Buscar el cliente por su ID
+            $cliente = Clientes::where('id', $id)->first(['nombre', 'apellido1', 'apellido2']); // Buscar el cliente por su ID
 
             if ($cliente) {
                 // Retornar los datos del cliente
