@@ -225,7 +225,7 @@ class MedicionesController extends Controller
             // Valida si el resultado está vacío
             if ($resultado->isEmpty()) {
                 return response()->json([
-                    'mensaje' => 'No se encontró ningún usuario'
+                    'mensaje' => 'No hay mediciones registradas del usuario'
                 ], 404);
             }
 
