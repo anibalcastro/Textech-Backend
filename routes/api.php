@@ -45,6 +45,7 @@ Route::post('v1/clientes/editar/{id}', [App\Http\Controllers\Api\V1\ClientesCont
 Route::get('v1/cliente/{id}', [App\Http\Controllers\Api\V1\ClientesController::class, 'obtenerCliente'])->middleware('jwt.auth');
 Route::post('v1/clientes/eliminar/{id_cliente}', [App\Http\Controllers\Api\V1\ClientesController::class, 'eliminarCliente'])->middleware('jwt.auth');
 Route::get('v1/clientes/cantidad/cantidad', [App\Http\Controllers\Api\V1\ClientesController::class, 'cantidadClientes'])->middleware('jwt.auth');
+Route::get('v1/info/cliente/{clienteId}' ,  [App\Http\Controllers\Api\V1\ClientesController::class, 'obtenerInformacionCliente'])->middleware('jwt.auth');
 
 
 /***************** */

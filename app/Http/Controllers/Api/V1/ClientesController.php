@@ -193,6 +193,22 @@ class ClientesController extends Controller
         ], 200);
     }
 
+    public function obtenerInformacionCliente($clienteId){
+
+        $cliente = Clientes::where('id', intval($clienteId))->first(['nombre', 'apellido1', 'apellido2','cedula', 'email', 'telefono', 'empresa', 'departamento', 'comentarios' ]);
+        if($cliente){
+            return response()->json([
+                'data' => $cliente,
+                'mensaje' => 'Cliente encontrado exitosamente'
+            ], 200);
+        }
+        else{
+            return response()->json([
+                'mensaje' => 'Cliente no encontrado',
+            ],404);
+        }
+    }
+
 
     /**
      * Función creada para validar los tipos de datos que entran en el request
