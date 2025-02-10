@@ -148,6 +148,27 @@ class EmpresasController extends Controller
         ]);
     }
 
+    public function dataEmpresa($id_empresa){
+        if (is_nan($id_empresa)){
+            return response()->json([
+                'status' => 400,
+                'mensaje' => 'El identificador es nulo',
+                'success' => false
+            ]);
+
+        }
+        else if(is_int($id_empresa)){
+            $empresa = Empresas::find($id_empresa);
+
+            return response()->json([
+                'status' => 200,
+                'mensaje' => 'Empresa encontrada',
+                'data' => $empresa,
+                'sucess' => true
+            ]);
+        }
+    }
+
 
     /**Valida los datos */
     public function validarData(Request $request)

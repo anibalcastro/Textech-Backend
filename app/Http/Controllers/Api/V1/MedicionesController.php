@@ -156,6 +156,66 @@ class MedicionesController extends Controller
         }
     }
 
+    public function addMeasurement(Request $request){
+        try {
+
+            //Validacion de los datos si estón bien.
+            $validateDataMeasurement = $this->validateData($request);
+
+            if($validateDataMeasurement){
+
+                //Query para buscar si la medicion del cliente existe.
+                $existsMeasurement = Mediciones::where('id_cliente', $request->id_cliente)->where('articulo', $request->articulo)->exists();
+
+                //Valida si la medicion existe retorna la respuesta que ya no se puede almacenar porque ya se registró.
+                if($existsMeasurement){
+                    return response()->json([
+                        'message' => 'Error, el articulo ya esta en la base de datos, no se puede agregar la medición',
+                        'success' => false,
+                        'status' => 400
+                    ]);
+                }
+                else{
+                    //Almacena las mediciones en la base de datos
+                   Mediciones::create($request->all());
+
+                    //valida que la medición se guardó
+                    $existsNewMeasurement = Mediciones::where('id_cliente', $request->id_cliente)->where('articulo', $request->articulo)->exists();
+
+                    //Valida si la medicion ya existe en la bd retorna la respuesta.
+                    if($existsNewMeasurement){
+                        return response()->json([
+                          'message' => 'La medición se guardó con éxito',
+                          'success' => true,
+                          'status' => 200
+                        ]);
+                    }else{
+                        return response()->json([
+                            'message' => 'Las mediciones no se han almacenado',
+                            'success' => false,
+                            'status' => 400
+                        ]);
+                    }
+
+                }
+
+            }
+            else{
+                return response()->json([
+                    'message' => $validateDataMeasurement,
+                    'success' => false,
+                    'status' => 400
+                ]);
+            }
+        } catch (\Exception $e) {
+            return response()->json([
+                'message' => $e,
+                'success' => false,
+                'status' => 400
+            ]);
+        }
+    }
+
 
     /**
      * Modifica una medida especifica, por medio del identificador de la medida.
