@@ -60,7 +60,7 @@ Route::get('v1/medicion/{id_cliente}', [App\Http\Controllers\Api\V1\MedicionesCo
 Route::get ('v1/mediciones/clientes', [App\Http\Controllers\Api\V1\MedicionesController::class, 'show'])->middleware('jwt.auth');
 Route::post('v1/mediciones/eliminar/{id_medicion}',[App\Http\Controllers\Api\V1\MedicionesController::class, 'eliminarMedida'])->middleware('jwt.auth');
 Route::get('v1/cliente/medicion/{id}',[App\Http\Controllers\Api\V1\MedicionesController::class, 'medidaId'])->middleware('jwt.auth');
-Route::post('v1/mediciones/agregar', [App\Http\Controllers\Api\V1\MedicionesController::class, 'addMeasurement'])->middleware('jwt.auth');
+Route::post('v1/mediciones/agregar', [App\Http\Controllers\Api\V1\MedicionesController::class, 'agregarMedicion'])->middleware('jwt.auth');
 
 /***************** */
 

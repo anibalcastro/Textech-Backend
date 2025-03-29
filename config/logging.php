@@ -126,6 +126,12 @@ return [
         'emergency' => [
             'path' => storage_path('logs/laravel.log'),
         ],
+
+        'mediciones' => [
+            'driver' => 'single',
+            'path' => storage_path('logs/mediciones.log'),
+            'level' => 'debug'
+        ],
     ],
 
 ];
