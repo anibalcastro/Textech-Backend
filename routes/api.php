@@ -76,7 +76,7 @@ Route::get('v1/empresas/cantidad', [App\Http\Controllers\Api\V1\EmpresasControll
 Route::post('v1/empresas/registrar', [App\Http\Controllers\Api\V1\EmpresasController::class, 'registrarEmpresa'])->middleware('jwt.auth');
 Route::post('v1/empresas/editar/{id}', [App\Http\Controllers\Api\V1\EmpresasController::class, 'modificarEmpresa'])->middleware('jwt.auth');
 Route::post('v1/empresas/eliminar/{id_empresa}', [App\Http\Controllers\Api\V1\EmpresasController::class, 'eliminarEmpresa'])->middleware('jwt.auth');
-Route::get('v1/empresa/detalle/{id_empresa}', [App\Http\Controllers\Api\V1\EmpresasController::class, 'detalleEmpresa']);
+Route::get('v1/empresa/detalle/{id_empresa}', [App\Http\Controllers\Api\V1\EmpresasController::class, 'detalleEmpresa'])->middleware('jwt.auth');
 /***************** */
 
 
