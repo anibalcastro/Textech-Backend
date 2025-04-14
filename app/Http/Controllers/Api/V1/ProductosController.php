@@ -34,14 +34,16 @@ class ProductosController extends Controller
                     return response()->json([
                         'data' => $crearProducto,
                         'mensaje' => 'Producto creado con éxito',
-                        'status' => 200
+                        'status' => 200,
+                        'success' => true
                     ], 200);
                 } else {
                     return response()->json([
                         'data' => $crearProducto,
                         'mensaje' => 'Producto no se pudo crear',
                         'status' => 500,
-                        'resultado' => $resultado
+                        'resultado' => $resultado,
+                        'success' => false
                     ], 500);
                 }
             }
@@ -74,7 +76,8 @@ class ProductosController extends Controller
             return response()->json([
                 'data' => $producto,
                 'mensaje' => 'Producto modificado',
-                'status' => '200'
+                'status' => '200',
+                'success' => true
             ],200);
         }
         else{
@@ -82,7 +85,8 @@ class ProductosController extends Controller
                 'message' => 'empresa no encontrado',
                 'validador_datos' => $validador,
                 'validador_producto' => $producto,
-                'status' => 404
+                'status' => 404,
+                'success'=> false
             ],404);
         }
     }
@@ -98,13 +102,15 @@ class ProductosController extends Controller
             $producto->delete();
             return response()->json([
                 'mensaje' => 'Producto eliminado',
-                'status' => 200
+                'status' => 200,
+                'success' => true
             ],200);
         }
 
         return response()->json([
             'mensaje' => 'El producto no existe',
-            'status' => 404
+            'status' => 404,
+            'success' => false
         ]);
     }
 
@@ -121,17 +127,20 @@ class ProductosController extends Controller
             Productos::where('id', $id_producto)->update(['precio_unitario' => $request->precio_unitario]);
             return response()->json([
                 'message' => 'Precio del producto actualizado correctamente',
-                'status' => 200
+                'status' => 200,
+                'success' => true
             ], 200);
         } else {
             return response()->json([
                 'message' => 'Producto no encontrado o datos inválidos',
                 'errors' => $validadorPrecio,
-                'status' => 404
+                'status' => 404,
+                'success' => false
             ], 404);
         }
     }
 
+    /**Retorna la cantidad de productos en la base de datos */
     public function cantidadProductos(){
         $productos = Productos::all();
         $cantidadProductos = count($productos);
@@ -139,7 +148,29 @@ class ProductosController extends Controller
         return response()->json([
             'cantidad' => $cantidadProductos,
             'status' => 200,
+            'success' => true
         ],200);
+    }
+
+    public function detalleProducto($id_producto){
+
+        $int_idProducto = intval($id_producto);
+        $producto = Productos::find($int_idProducto);
+
+        if(!$producto){
+            return response()->json([
+                'mensaje' => 'El producto no se ha encontrado',
+                'status' => 404,
+                'success' => false
+            ]);
+        }
+
+        return response()->json([
+            'mensaje' => 'Producto encontrado',
+            'data' => $producto,
+            'status' => 200,
+            'success' => true
+        ]);
     }
 
     /**
