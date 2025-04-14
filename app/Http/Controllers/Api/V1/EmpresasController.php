@@ -48,20 +48,25 @@ class EmpresasController extends Controller
                     return response()->json([
                         'data' => $request->all(),
                         'mensaje' => 'Empresa creada con éxito',
-                        'status' => 200
+                        'status' => 200,
+                        'success' => true
                     ], 200);
                 } else {
                     return response()->json([
                         'mensaje' => 'Error al guardar la empresa',
                         'status' => 500,
-                        'data' => $crearEmpresa
+                        'data' => $crearEmpresa,
+                        'success' => false
+
                     ], 500);
                 }
             } else {
                 return response()->json([
                     'mensaje' => 'Los datos ingresados son incorrectos',
                     'error' => $validador,
-                    'status' => 500
+                    'status' => 500,
+                    'success' => false
+
                 ], 500);
             }
         } catch (\Exception $e) {
@@ -86,6 +91,7 @@ class EmpresasController extends Controller
                         'data' => $empresa,
                         'message' => 'empresa modificado con éxito',
                         'status' => 200,
+                        'success' => true
                     ],
                     200
                 );
@@ -95,7 +101,8 @@ class EmpresasController extends Controller
                         'message' => 'empresa no encontrado',
                         'validador_datos' => $validador,
                         'validador_empresa' => $empresa,
-                        'status' => 404
+                        'status' => 404,
+                        'success' => false
                     ],
                     404
                 );
@@ -105,7 +112,8 @@ class EmpresasController extends Controller
                 'mensaje' => 'Error',
                 'status' => 500,
                 'error' => $e,
-                'data' => $request->all()
+                'data' => $request->all(),
+                'success' => false
 
             ], 500);
         }
@@ -119,20 +127,23 @@ class EmpresasController extends Controller
             if (!$empresa) {
                 return response()->json([
                     'mensaje' => 'La empresa no existe',
-                    'status' => 404
+                    'status' => 404,
+                    'success' => false
                 ]);
             } else {
                 $empresa->delete();
                 return response()->json([
                     'mensaje' => 'Empresa eliminado',
-                    'status' => 200
+                    'status' => 200,
+                    'sucess' => true
                 ]);
             }
         } catch (\Exception $e) {
             return response()->json([
                 'error' => $e,
                 'mensaje' => 'Error al eliminar la empresa',
-                'status' => 500
+                'status' => 500,
+                'success' => false
             ], 500);
         }
     }
@@ -144,11 +155,12 @@ class EmpresasController extends Controller
 
         return response()->json([
             'cant_empresas' => $cantidad,
-            'status' => 200
+            'status' => 200,
+            'success' => true
         ]);
     }
 
-    public function dataEmpresa($id_empresa){
+    public function detalleEmpresa($id_empresa){
         if (is_nan($id_empresa)){
             return response()->json([
                 'status' => 400,
@@ -164,9 +176,26 @@ class EmpresasController extends Controller
                 'status' => 200,
                 'mensaje' => 'Empresa encontrada',
                 'data' => $empresa,
-                'sucess' => true
+                'success' => true
             ]);
         }
+        else{
+            $int_idEmpresa = intval($id_empresa);
+            $empresa = Empresas::find($int_idEmpresa);
+
+            return response()->json([
+                'status' => 200,
+                'mensaje' => 'Empresa encontrada',
+                'data' => $empresa,
+                'success' => true
+            ]);
+        }
+
+        return response()->json([
+            'status' => 500,
+            'mensaje' => "No hemos podido encontrar la empresa.",
+            'success'=> false
+        ]);
     }
 
 
