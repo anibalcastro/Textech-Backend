@@ -8,6 +8,8 @@ use Illuminate\Http\Request;
 use Tymon\JWTAuth\Facades\JWTAuth;
 use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Hash;
+
 
 class LoginController extends Controller
 {
@@ -16,21 +18,30 @@ class LoginController extends Controller
         try {
             $this->validarLogin($request);
 
-            if (Auth::attempt($request->only('email', 'password'))) {
-                $user = Auth::user(); // Obtén el usuario autenticado actualmente
+            $user = User::where('email', $request->email)->first();
 
+            if(!$user){
                 return response()->json([
-                    'token' => JWTAuth::fromUser($user), // Genera el JWT utilizando el usuario
-                    'mensaje' => 'Success',
-                    'role' => $user->role,
-                    'status' => 200
-                ]);
+                    'mensaje' => 'Usuario no encontrado',
+                    'status' => 404,
+                ], 401);
             }
 
+            if (!Hash::check($request->password, $user->password)) {
+                return response()->json([
+                    'mensaje' => 'Contraseña incorrecta',
+                    'status' => 401,
+                ], 401);
+            }
+
+
             return response()->json([
-                'mensaje' => 'No se ha podido autenticar',
-                'status' => 404,
-            ], 401);
+                'token' => JWTAuth::fromUser($user),
+                'mensaje' => 'Login exitoso',
+                'role' => $user->role,
+                'status' => 200
+            ]);
+
         } catch (Exception $e) {
             // Captura cualquier excepción lanzada durante el proceso de autenticación
             return response()->json([
