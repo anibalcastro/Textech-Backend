@@ -64,7 +64,8 @@ class OrdenPedidoController extends Controller
     /**
      * Create an order, detail and invoice.
      */
-    public function crearOrden(Request $request) {
+    public function crearOrden(Request $request)
+    {
         try {
             // Decodifica el JSON enviado en el cuerpo de la solicitud
             $data = json_decode($request->getContent(), true);
@@ -209,7 +210,8 @@ class OrdenPedidoController extends Controller
     }
     */
 
-    public function crearOrdenDetalle($detalles, $idOrden){
+    public function crearOrdenDetalle($detalles, $idOrden)
+    {
         foreach ($detalles as $detalle) {
             $objDetalle = new DetallePedido();
 
@@ -287,7 +289,7 @@ class OrdenPedidoController extends Controller
 
             if (!empty($personas) && count($personas) > 0) {
                 // Filtrar personas con campos vacíos
-                $personasValidas = array_filter($personas, function($persona) {
+                $personasValidas = array_filter($personas, function ($persona) {
                     return !empty($persona['nombre']) && !empty($persona['prenda']) && !empty($persona['cantidad']);
                 });
 
@@ -669,33 +671,41 @@ class OrdenPedidoController extends Controller
 
     public function getOrderFiles($orderId)
     {
-        // Encuentra la orden por su ID
         $order = OrdenPedido::find($orderId);
 
-        if ($order) {
-            // Accede a los archivos asociados a la orden
-            $archivos = $order->archivos;
-
-            // Preparar las rutas de los archivos para enviar al frontend
-            $rutasArchivos = $archivos->map(function ($archivo) {
-                return [
-                    'url' => asset('storage/archivos/' . $archivo->file_path),
-                    'file_path' => $archivo->file_path
-                ];
-            });
-
-            return response()->json(["data" => $rutasArchivos, "status" => 200]);
-        } else {
+        if (!$order) {
             return response()->json(['error' => 'Orden no encontrada'], 404);
         }
+
+        $archivos = $order->archivos ?? collect([]);
+
+        $rutasArchivos = $archivos->map(function ($archivo) {
+            // Reemplaza espacios por guiones bajos en la ruta del archivo
+            $rutaSanitizada = str_replace(' ', '_', $archivo->file_path);
+
+            // URL con la ruta modificada
+            $url = asset('storage/archivos/' . $rutaSanitizada);
+
+            // Nombre del archivo limpio (sin carpeta ni extensión si querés)
+            $nombreArchivo = basename($archivo->file_path);
+            $nombreSanitizado = str_replace(' ', '_', $nombreArchivo);
+
+            return [
+                'download_url' => $url,
+                'nombreArchivo' => $nombreSanitizado
+            ];
+        });
+
+        return response()->json(["data" => $rutasArchivos, "status" => 200]);
     }
 
     /**
      * Se actualiza el entregado a true del detalle del pedido.
      * Se recibe la identificacion del detalle de la orden.
      */
-    public function actualizarEstadoDetallePedido ($detalleId) {
+    public function actualizarEstadoDetallePedido($detalleId)
+    {
         DetallePedido::where('id', $detalleId)->update(['entregado' => true]);
-        return response()->json(['mensaje' => 'Modificado con exito' , 'status' => 200],200);
+        return response()->json(['mensaje' => 'Modificado con exito', 'status' => 200], 200);
     }
 }
