@@ -8,11 +8,12 @@ use Dompdf\Options;
 use App\Models\Clientes;
 use App\Models\Inventario;
 use App\Models\Mediciones;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\View;
 use Illuminate\Support\Facades\Storage;
-use Illuminate\Http\Request;
 
 
 class ReportesController extends Controller
@@ -85,66 +86,79 @@ class ReportesController extends Controller
     /**Funcion que genera el detalle del pedido */
     public function generarDetallePedido($id_pedido)
     {
-        $encabezadoPedido = DB::table('orden_pedido as op')
-            ->select('op.id','op.proforma' ,'op.titulo', 'e.nombre_empresa', 'e.telefono_encargado', 'op.estado', 'op.fecha_orden', 'f.cajero')
-            ->join('facturas as f', 'f.id', '=', 'op.id_factura')
-            ->join('empresas as e', 'e.id', '=', 'op.id_empresa')
-            ->where('op.id', '=', $id_pedido)
-            ->first();
+        try {
+            // 1. Validar que exista la orden
+            $encabezadoPedido = DB::table('orden_pedido as op')
+                ->select(
+                    'op.id',
+                    'op.proforma',
+                    'op.titulo',
+                    'e.nombre_empresa',
+                    'e.telefono_encargado',
+                    'op.estado',
+                    'op.fecha_orden',
+                    'f.cajero'
+                )
+                ->join('facturas as f', 'f.id', '=', 'op.id_factura')
+                ->join('empresas as e', 'e.id', '=', 'op.id_empresa')
+                ->where('op.id', $id_pedido)
+                ->first();
 
-        $detallePedido = DB::table('orden_pedido as op')
-            ->select('p.nombre_producto', 'dp.cantidad', 'dp.descripcion', 'dp.precio_unitario', 'dp.subtotal')
-            ->join('detalle_pedido as dp', 'dp.id_pedido', '=', 'op.id')
-            ->join('productos as p', 'p.id', '=', 'dp.id_producto')
-            ->where('op.id', '=', $id_pedido)
-            ->get();
+            if (!$encabezadoPedido) {
+                return response()->json(['error' => 'Pedido no encontrado'], 404);
+            }
 
-        $facturaPedido = DB::table('orden_pedido as op')
-            ->select('f.subtotal', 'f.iva', 'f.monto', 'f.saldo_restante')
-            ->join('facturas as f', 'f.id', '=', 'op.id_factura')
-            ->where('op.id', '=', $id_pedido)
-            ->first();
+            // 2. Obtener detalle del pedido
+            $detallePedido = DB::table('detalle_pedido as dp')
+                ->select('p.nombre_producto', 'dp.cantidad', 'dp.descripcion', 'dp.precio_unitario', 'dp.subtotal')
+                ->join('productos as p', 'p.id', '=', 'dp.id_producto')
+                ->where('dp.id_pedido', $id_pedido)
+                ->get();
 
+            // 3. Obtener factura
+            $facturaPedido = DB::table('orden_pedido as op')
+                ->select('f.subtotal', 'f.iva', 'f.monto', 'f.saldo_restante')
+                ->join('facturas as f', 'f.id', '=', 'op.id_factura')
+                ->where('op.id', $id_pedido)
+                ->first();
 
-        $html = View::make('detalle_pedido', [
-            'encabezadoPedido' => $encabezadoPedido,
-            'detalle' => $detallePedido,
-            'factura' => $facturaPedido
-        ])->render();
+            // 4. Renderizar la vista
+            $html = View::make('detalle_pedido', [
+                'encabezadoPedido' => $encabezadoPedido,
+                'detalle' => $detallePedido,
+                'factura' => $facturaPedido
+            ])->render();
 
+            // 5. Configurar DomPDF
+            $options = new Options();
+            $options->set('isHtml5ParserEnabled', true);
+            $options->set('isPhpEnabled', true);
+            $dompdf = new Dompdf($options);
+            $dompdf->loadHtml($html);
+            $dompdf->setPaper('A4', 'portrait');
+            $dompdf->render();
 
-        $options = new Options();
-        $options->set('isHtml5ParserEnabled', true);
-        $options->set('isPhpEnabled', true);
+            // 6. Sanitizar nombre del archivo
+            $nombreEmpresa = str_replace(' ', '_', $encabezadoPedido->nombre_empresa);
+            $nombreArchivo = 'Detalle_pedido_' . $nombreEmpresa . '.pdf';
+            $rutaArchivo = 'reportes/' . $nombreArchivo;
 
-        // Inicializar Dompdf
-        $dompdf = new Dompdf($options);
+            // 7. Guardar el archivo
+            $pdfContent = $dompdf->output();
+            Storage::disk('reportes')->put($nombreArchivo, $pdfContent);
 
-        // Cargar el HTML en Dompdf
-        $dompdf->loadHtml($html);
+            // 8. Generar URL
+            $urlDescarga = url('storage/' . $rutaArchivo);
 
-        // Establecer el tamaño del papel y la orientación
-        $dompdf->setPaper('A4', 'portrait');
-
-        $nombreArchivo = 'Detalle_pedido_' . $encabezadoPedido->nombre_empresa;
-
-        // Renderizar el PDF
-        $dompdf->render();
-
-        $pdfContent = $dompdf->output();
-
-        // Guardar el PDF temporalmente en el servidor
-        $rutaArchivo = 'reportes/' . $nombreArchivo; // ruta en el nuevo sistema de archivos
-        Storage::disk('reportes')->put($nombreArchivo, $pdfContent);
-
-        // Construir la URL del archivo para descargar
-        $urlDescarga = url('storage/' . $rutaArchivo);
-
-        // Devolver la URL del archivo para descargar
-        return response()->json([
-            'download_url' => $urlDescarga,
-            'nombreArchivo' => $nombreArchivo,
-        ], 200);
+            // 9. Retornar respuesta
+            return response()->json([
+                'download_url' => $urlDescarga,
+                'nombreArchivo' => $nombreArchivo,
+            ], 200);
+        } catch (\Exception $e) {
+            Log::error("Error generando PDF de pedido $id_pedido: " . $e->getMessage());
+            return response()->json(['error' => 'Error al generar el PDF'], 500);
+        }
     }
 
     /**Funcion que genera detalle de pagos de las reparaciones */
@@ -228,7 +242,7 @@ class ReportesController extends Controller
     public function detallePagoPedido($id_pedido)
     {
         $encabezadoPedido = DB::table('orden_pedido as op')
-            ->select('op.id', 'op.proforma' ,'op.titulo', 'e.nombre_empresa', 'e.telefono_encargado', 'op.estado', 'op.fecha_orden', 'f.cajero')
+            ->select('op.id', 'op.proforma', 'op.titulo', 'e.nombre_empresa', 'e.telefono_encargado', 'op.estado', 'op.fecha_orden', 'f.cajero')
             ->join('facturas as f', 'f.id', '=', 'op.id_factura')
             ->join('empresas as e', 'e.id', '=', 'op.id_empresa')
             ->where('op.id', '=', $id_pedido)
@@ -664,17 +678,17 @@ class ReportesController extends Controller
 
 
         $resultados = DB::table('facturas as f')
-        ->leftJoin('orden_pedido as op', 'op.id_factura', '=', 'f.id')
-        ->leftJoin('reparacion_prendas as rp', 'rp.id_factura', '=', 'f.id')
-        ->select(
-            DB::raw('SUM(f.monto) as monto_facturado'),
-            DB::raw('(SUM(f.monto) - SUM(f.saldo_restante)) as monto_pagado'),
-            DB::raw('DATE(f.created_at) as fecha')
-        )
-        ->where('f.estado', '<>', 'Nula')
-        ->groupBy(DB::raw('DATE(f.created_at)'))
-        ->orderBy(DB::raw('DATE(f.created_at)'), 'desc')
-        ->get();
+            ->leftJoin('orden_pedido as op', 'op.id_factura', '=', 'f.id')
+            ->leftJoin('reparacion_prendas as rp', 'rp.id_factura', '=', 'f.id')
+            ->select(
+                DB::raw('SUM(f.monto) as monto_facturado'),
+                DB::raw('(SUM(f.monto) - SUM(f.saldo_restante)) as monto_pagado'),
+                DB::raw('DATE(f.created_at) as fecha')
+            )
+            ->where('f.estado', '<>', 'Nula')
+            ->groupBy(DB::raw('DATE(f.created_at)'))
+            ->orderBy(DB::raw('DATE(f.created_at)'), 'desc')
+            ->get();
 
 
 

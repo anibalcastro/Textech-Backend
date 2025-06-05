@@ -92,10 +92,10 @@ Route::get('v1/producto/detalle/{id_producto}', [App\Http\Controllers\Api\V1\Pro
 
 /***************** */
 //Ruta de orden de pedidos
-Route::apiResource('v1/ordenes', OrdenPedidoController::class)->only((['index']))->middleware('jwt.auth');
+Route::apiResource('v1/ordenes', OrdenPedidoController::class)->only((['index']));//->middleware('jwt.auth');
 Route::get('v1/ordenes/cantidad', [App\Http\Controllers\Api\V1\OrdenPedidoController::class, 'cantidadOrdenEstado'])->middleware('jwt.auth');
 Route::get('v1/ordenes/{id_orden}', [App\Http\Controllers\Api\V1\OrdenPedidoController::class, 'ordenPedidoDetalleFactura'])->middleware('jwt.auth');
-Route::post('v1/ordenes/registrar', [App\Http\Controllers\Api\V1\OrdenPedidoController::class, 'crearOrden'])->middleware('jwt.auth');
+Route::post('v1/ordenes/registrar', [App\Http\Controllers\Api\V1\OrdenPedidoController::class, 'crearOrden']);//->middleware('jwt.auth');
 Route::post('v1/ordenes/editar/{id_orden}', [App\Http\Controllers\Api\V1\OrdenPedidoController::class, 'modificarOrden'])->middleware('jwt.auth');
 Route::post('v1/ordenes/editar/estado/{id_orden}', [App\Http\Controllers\Api\V1\OrdenPedidoController::class, 'actualizarEstadoPedido'])->middleware('jwt.auth');
 Route::post('v1/ordenes/anular/{id_orden}', [App\Http\Controllers\Api\V1\OrdenPedidoController::class, 'anularOrden'])->middleware('jwt.auth');
