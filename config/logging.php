@@ -132,6 +132,13 @@ return [
             'path' => storage_path('logs/mediciones.log'),
             'level' => 'debug'
         ],
+
+         'ordenes' => [
+            'driver' => 'single',
+            'path' => storage_path('logs/ordenes.log'),
+            'level' => 'debug'
+        ],
+
     ],
 
 ];

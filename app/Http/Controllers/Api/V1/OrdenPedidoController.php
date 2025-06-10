@@ -10,8 +10,8 @@ use App\Models\DetallePedido;
 
 use Illuminate\Support\Facades\DB;
 use App\Http\Controllers\Controller;
-use App\Models\Archivos;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Support\Facades\Log;
 
 class OrdenPedidoController extends Controller
 {
@@ -22,6 +22,7 @@ class OrdenPedidoController extends Controller
         return response()->json([
             'ordenes' => $ordenesConDetalles,
             'status' => 200,
+            'success' => true
         ]);
     }
 
@@ -36,19 +37,21 @@ class OrdenPedidoController extends Controller
 
             $idFactura = $orden->id_factura;
 
-            $factura = Facturas::where('id', $idFactura)->get();
+            $factura = Facturas::find($idFactura);
 
             return response()->json([
                 'mensaje' => 'Orden encontrada con éxito',
                 'orden' => $orden,
                 'detalles' => $ordenDetalles,
                 'facturas' => $factura,
-                'status' => 200
+                'status' => 200,
+                'success' => true
             ]);
         } else {
             return response()->json([
                 'mensaje' => 'Orden no encontrada',
-                'status' => 422
+                'status' => 422,
+                'success' => false
             ]);
         }
     }
@@ -77,7 +80,8 @@ class OrdenPedidoController extends Controller
                 return response()->json([
                     'mensaje' => 'Los datos ingresados son incorrectos',
                     'error' => $validador,
-                    'status' => 422 // Código de estado para datos no procesables
+                    'status' => 422, // Código de estado para datos no procesables
+                    'success' => false
                 ], 422);
             }
 
@@ -101,7 +105,8 @@ class OrdenPedidoController extends Controller
                 DB::rollBack();
                 return response()->json([
                     'mensaje' => 'Error al crear los detalles de la orden',
-                    'status' => 500
+                    'status' => 500,
+                    'success' => false,
                 ], 500);
             }
 
@@ -130,7 +135,8 @@ class OrdenPedidoController extends Controller
                 DB::rollBack();
                 return response()->json([
                     'mensaje' => 'Error al crear la factura',
-                    'status' => 500
+                    'status' => 500,
+                    'success' => false,
                 ], 500);
             }
 
@@ -152,9 +158,19 @@ class OrdenPedidoController extends Controller
             return response()->json([
                 'mensaje' => 'Orden creada con éxito',
                 'orden' => $orden,
-                'status' => 200
+                'status' => 200,
+                'success' => true,
             ], 200);
         } catch (\Exception $e) {
+
+            //Se almacena en el log de ordenes
+            Log::channel('ordenes')->warning('Orden no se pudo crear', [
+                'orden' => $orden,
+                'detalles' => $detalles,
+                'factura' => $factura,
+                'personas' => $personas,
+            ]);
+
             // Si ocurre una excepción, revierte la transacción
             if (DB::transactionLevel() > 0) {
                 DB::rollBack();
@@ -163,52 +179,11 @@ class OrdenPedidoController extends Controller
             return response()->json([
                 'mensaje' => 'Error al registrar la orden',
                 'error' => $e->getMessage(),
-                'status' => 500
+                'status' => 500,
+                'success' => false
             ], 500);
         }
     }
-
-    /*
-    public function crearOrdenDetalle($detalles, $idOrden)
-    {
-        $detallePedidoValido = [];
-        $detallePedidoIncorrecto = [];
-        $contadorAgregados = 0;
-
-
-
-        foreach ($detalles as $detalle) {
-            $detalle["id_pedido"] = $idOrden; // Asigna el id del pedido al detalle
-            $validadorDatos = $this->validarDatosDetalle($detalle);
-
-            if ($validadorDatos === true) {
-                $detallePedidoValido[] = $detalle;
-            } else {
-                $detallePedidoIncorrecto[] = $detalle;
-            }
-        }
-
-        if (count($detallePedidoIncorrecto) == 0) {
-            foreach ($detallePedidoValido as $detalle) {
-                // Usar transacción para asegurar que todas las operaciones sean exitosas
-                DB::transaction(function () use ($detalle, &$contadorAgregados) {
-                    $crearDetallePedido = DetallePedido::create($detalle);
-                    if ($crearDetallePedido->save()) {
-                        $contadorAgregados++;
-                    }
-                });
-            }
-
-            if ($contadorAgregados == count($detallePedidoValido)) {
-                return true;
-            } else {
-                return false; // No se agregaron correctamente todos los detalles válidos
-            } // Retornar false si no se agregaron correctamente todos los detalles válidos
-        } else {
-            return ['detalleIncorrecto' => $detallePedidoIncorrecto, 'resultado' => false];
-        }
-    }
-    */
 
     public function crearOrdenDetalle($detalles, $idOrden)
     {
@@ -265,7 +240,8 @@ class OrdenPedidoController extends Controller
                 //Return response error...
                 return response()->json([
                     "mensaje" => "Error, no se ha podido encontrar la orden",
-                    "status" => 404
+                    "status" => 404,
+                    "success" => false,
                 ], 404);
             }
 
@@ -318,25 +294,35 @@ class OrdenPedidoController extends Controller
                         "mensaje" => "Orden de pedido actualizada",
                         "nuevoMonto" => $nuevoMontoTotal,
                         "status" => 200,
+                        "success" => true
                     ]);
                 } else {
                     return response()->json([
                         "mensaje" => "Error al modificar el detalle",
                         "errores" => $resultadoDetalle->error,
-                        "status" => 400
+                        "status" => 400,
+                        "success" => true
                     ]);
                 }
             } else {
                 return response()->json([
                     'mensaje' => $resultadoFactura->mensaje,
-                    'status' => 422
+                    'status' => 422,
+                    'success' => true
                 ]);
             }
         } catch (\Exception $e) {
+
+            Log::channel('ordenes')->warning('Orden no modificada', [
+                'orden' => $orden,
+                'detalles' => $detalles,
+            ]);
+
             return response()->json([
                 'mensaje' => 'Error, no se ha podido modificar la orden',
                 'error' => $e->getMessage(),
-                'status' => 422
+                'status' => 422,
+                'success' => false,
             ]);
         }
     }
@@ -402,12 +388,21 @@ class OrdenPedidoController extends Controller
                 "mensaje" => "Orden de pedido actualizada",
                 "nuevoMonto" => $nuevoMonto,
                 "status" => 200,
+                "success" => true,
             ]);
         } catch (\Exception $e) {
+
+            Log::channel('ordenes')->warning('Orden no modificada', [
+                'id_orden' => $id_orden,
+                'detalles' => $detalles
+            ]);
+
+
             return response()->json([
                 'status' => 500,
                 'mensaje' => 'Error al modificar la orden',
                 'error' => $e->getMessage(),
+                'success' => false,
             ]);
         }
     }
@@ -440,25 +435,29 @@ class OrdenPedidoController extends Controller
                         "mensaje" => "Estado actualizado con exito",
                         "status" => 200,
                         "nuevoEstado" => $nuevoEstado,
-                        "estadoAnterior" => $estadoActual
+                        "estadoAnterior" => $estadoActual,
+                        "success" => true,
                     ], 200);
                 } else {
                     return response()->json([
                         "mensaje" => "El estado no es correcto",
-                        "status" => 422
+                        "status" => 422,
+                        "success" => false,
                     ], 422);
                 }
             } else {
                 return response()->json([
                     "mensaje" => "La nueva posición no puede estar antes de la posición actual.",
-                    "status" => 500
+                    "status" => 500,
+                    "success" => false,
                 ], 500);
             }
         }
 
         return response()->json([
             "mensaje" => "Error, no se ha podido encontrar la orden",
-            "status" => 404
+            "status" => 404,
+            "success" => false,
         ], 404);
     }
 
@@ -491,26 +490,30 @@ class OrdenPedidoController extends Controller
                     if ($contentFactura->status === 200 && $contentAbono->status === 200 || $contentAbono->status === 422) {
                         return response()->json([
                             'mensaje' => 'Orden anulada, factura y abonos correspondientes tambien han sido anulados.',
-                            'status' => 200
+                            'status' => 200,
+                            'success' => false,
                         ], 200);
                     }
                 }
 
                 return response()->json([
                     "mensaje" => "Orden de pedido y detalle anulada de manera correcta",
-                    "status" => 200
+                    "status" => 200,
+                    "success" => true,
                 ], 200);
             }
 
             return response()->json([
                 "mensaje" => "Error, no se ha podido encontrar la orden",
-                "status" => 404
+                "status" => 404,
+                "success" => false,
             ], 404);
         } catch (\Exception $e) {
             return response()->json([
                 'mensaje' => 'Error',
                 'error' => $e->getMessage(),
-                'status' => 422
+                'status' => 422,
+                'success' => false,
             ]);
         }
     }
@@ -539,7 +542,8 @@ class OrdenPedidoController extends Controller
             "cantidad_taller" => $cantidad_taller,
             "cantidad_entrega_tienda" => $cantidad_entrega_tienda,
             "cantidad_entrega_cliente" => $cantidad_entrega_cliente,
-            "status" => 200
+            "status" => 200,
+            "success" => true
         ], 200);
     }
 
@@ -551,7 +555,8 @@ class OrdenPedidoController extends Controller
         if (!$orden) {
             return response()->json([
                 'mensaje' => 'La orden no ha sido encontrada',
-                'status' => 422
+                'status' => 422,
+                'success' => false,
             ], 422);
         }
 
@@ -559,7 +564,8 @@ class OrdenPedidoController extends Controller
 
         return response()->json([
             'mensaje' => 'Se ha actualizado correctamente',
-            'status' => 200
+            'status' => 200,
+            'success' => true,
         ], 200);
     }
 
@@ -571,7 +577,8 @@ class OrdenPedidoController extends Controller
         if (!$orden) {
             return response()->json([
                 'mensaje' => 'La orden no ha sido encontrada',
-                'status' => 422
+                'status' => 422,
+                'success' => false,
             ], 422);
         }
 
@@ -579,7 +586,8 @@ class OrdenPedidoController extends Controller
 
         return response()->json([
             'mensaje' => 'Se ha actualizado correctamente',
-            'status' => 200
+            'status' => 200,
+            'success' => true,
         ], 200);
     }
 
@@ -696,7 +704,7 @@ class OrdenPedidoController extends Controller
             ];
         });
 
-        return response()->json(["data" => $rutasArchivos, "status" => 200]);
+        return response()->json(["data" => $rutasArchivos, "status" => 200, "success" => true]);
     }
 
     /**
@@ -706,6 +714,6 @@ class OrdenPedidoController extends Controller
     public function actualizarEstadoDetallePedido($detalleId)
     {
         DetallePedido::where('id', $detalleId)->update(['entregado' => true]);
-        return response()->json(['mensaje' => 'Modificado con exito', 'status' => 200], 200);
+        return response()->json(['mensaje' => 'Modificado con exito', 'status' => 200, "success => true"], 200);
     }
 }
