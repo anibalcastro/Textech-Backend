@@ -54,11 +54,11 @@ Route::get('v1/info/cliente/{clienteId}' ,  [App\Http\Controllers\Api\V1\Cliente
 //Rutas de mediciones
 Route::apiResource('v1/mediciones', MedicionesController::class)->only((['index', 'show', 'destroy']))->middleware('jwt.auth');
 Route::get('v1/mediciones/cantidad/cantidad', [App\Http\Controllers\Api\V1\MedicionesController::class, 'cantidadMediciones'])->middleware('jwt.auth');
-Route::post('v1/mediciones/registrar', [App\Http\Controllers\Api\V1\MedicionesController::class, 'registrarMedida'])->middleware('jwt.auth');
+Route::post('v1/mediciones/registrar', [App\Http\Controllers\Api\V1\MedicionesController::class, 'registrarMedida']);
 Route::post('v1/mediciones/editar/{id}', [App\Http\Controllers\Api\V1\MedicionesController::class, 'modificarMedida'])->middleware('jwt.auth');
 Route::get('v1/medicion/{id_cliente}', [App\Http\Controllers\Api\V1\MedicionesController::class, 'retornarMedicionesCliente'])->middleware('jwt.auth');
 Route::get ('v1/mediciones/clientes', [App\Http\Controllers\Api\V1\MedicionesController::class, 'show'])->middleware('jwt.auth');
-Route::post('v1/mediciones/eliminar/{id_medicion}',[App\Http\Controllers\Api\V1\MedicionesController::class, 'eliminarMedida'])->middleware('jwt.auth');
+Route::post('v1/mediciones/eliminar/{id_medicion}',[App\Http\Controllers\Api\V1\MedicionesController::class, 'eliminarMedida']);
 Route::get('v1/cliente/medicion/{id}',[App\Http\Controllers\Api\V1\MedicionesController::class, 'medidaId'])->middleware('jwt.auth');
 Route::post('v1/mediciones/agregar', [App\Http\Controllers\Api\V1\MedicionesController::class, 'agregarMedicion'])->middleware('jwt.auth');
 

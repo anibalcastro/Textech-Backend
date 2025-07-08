@@ -44,8 +44,14 @@ class Mediciones extends Model
         'altura_cadera_inferior',
         'altura_rodilla_inferior',
         'contorno_tiro_inferior',
-        'tiro_largo_ya_inferior'
-
+        'tiro_largo_ya_inferior',
+        'largo_entrepierna_inferior',
+        'alto_cadera_superior',
+        'ancho_pecho_superior',
+        'boca_manga_superior',
+        'largo_costado_superior',
+        'contorno_cuello_superior',
+        'escote_superior',
     ];
 
     public function cliente()

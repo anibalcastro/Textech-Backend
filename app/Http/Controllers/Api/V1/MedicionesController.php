@@ -237,7 +237,7 @@ class MedicionesController extends Controller
                 ],
                 "inferior" => ['id_cliente','articulo', 'talla','fecha', 'observaciones', 'sastre',
                     'largo_inferior', 'cintura_inferior', 'cadera_inferior',
-                    'altura_cadera_inferior', 'pierna_inferior', 'ruedo_inferior', 'tiro_inferior', 'contorno_tiro_inferior', 'tiro_largo_ya_inferior', 'largo_total_superior', 'largo_entrepierna_inferior'
+                    'altura_cadera_inferior', 'pierna_inferior', 'ruedo_inferior', 'tiro_inferior', 'contorno_tiro_inferior', 'largo_entrepierna_inferior'
                 ],
                 "enagua" => [
                     'id_cliente','articulo', 'talla', 'fecha', 'observaciones', 'sastre', 'largo_inferior', 'cintura_inferior', 'cadera_inferior', 'altura_cadera_inferior', 'separacion_busto_superior'
@@ -256,8 +256,8 @@ class MedicionesController extends Controller
                 $tipoPrenda = "superior";
             } elseif (in_array($prenda, $inferior)) {
                 $tipoPrenda = "inferior";
-            } elseif ($prenda === "vestido") {
-                $tipoPrenda = "vestido";
+            } elseif ($prenda === "pantalon") {
+                $tipoPrenda = "pantalon";
             } elseif ($prenda === "enagua") {
                 $tipoPrenda = "enagua";
             } else {
@@ -266,7 +266,9 @@ class MedicionesController extends Controller
                 return response()->json(['success' => false, 'message' => $errorMsg], 400);
             }
 
+
             $datosFiltrados = array_intersect_key($data, array_flip($camposPrenda[$tipoPrenda]));
+
             $camposFaltantes = array_diff($camposPrenda[$tipoPrenda], array_keys($datosFiltrados));
 
             if (!empty($camposFaltantes)) {
