@@ -42,8 +42,13 @@ class MedicionesResource extends JsonResource
             'fecha' => $this->fecha,
             'observaciones' => $this->observaciones,
             'sastre' => $this->sastre,
-            'tiro_largo_ya_inferior' => $this->tiro_largo_ya_inferior
-
+            'tiro_largo_ya_inferior' => $this->tiro_largo_ya_inferior,
+            'largo_entrepierna_inferior' => $this->largo_entrepierna_inferior,
+            'alto_cadera_superior' => $this->alto_cadera_superior,
+            'ancho_pecho_superior' => $this->ancho_pecho_superior,
+            'boca_manga_superior' => $this->boca_manga_superior,
+            'contorno_cuello_superior' => $this->contorno_cuello_superior,
+            'escote_superior' => $this->escote_superior
         ];
     }
 }

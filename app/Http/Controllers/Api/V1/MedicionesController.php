@@ -233,29 +233,24 @@ class MedicionesController extends Controller
                     'largo_total_espalda_superior', 'largo_total_superior',
                     'largo_manga_corta_superior', 'ancho_manga_corta_superior',
                     'largo_manga_larga_superior', 'ancho_manga_larga_superior',
-                    'puno_superior'
+                    'puno_superior', 'alto_cadera_superior', 'ancho_pecho_superior', 'boca_manga_superior', 'largo_costado_superior','contorno_cuello_superior', 'escote_superior',
                 ],
                 "inferior" => ['id_cliente','articulo', 'talla','fecha', 'observaciones', 'sastre',
                     'largo_inferior', 'cintura_inferior', 'cadera_inferior',
-                    'altura_cadera_inferior', 'pierna_inferior', 'rodilla_inferior',
-                    'altura_rodilla_inferior', 'ruedo_inferior', 'tiro_inferior', 'contorno_tiro_inferior', 'tiro_largo_ya_inferior', 'largo_total_superior'
-                ],
-                "vestido" => ['id_cliente', 'articulo','talla', 'fecha', 'observaciones', 'sastre',
-                    'espalda_superior', 'talle_espalda_superior', 'ancho_espalda_superior',
-                    'talle_frente_superior', 'separacion_busto_superior', 'busto_superior',
-                    'cintura_superior', 'cadera_superior', 'alto_pinza_superior', 'hombros_superior',
-                    'largo_total_espalda_superior', 'largo_total_superior',
-                    'largo_manga_corta_superior', 'ancho_manga_corta_superior',
-                    'largo_manga_larga_superior', 'ancho_manga_larga_superior',
-                    'puno_superior', 'altura_cadera_inferior'
+                    'altura_cadera_inferior', 'pierna_inferior', 'ruedo_inferior', 'tiro_inferior', 'contorno_tiro_inferior', 'tiro_largo_ya_inferior', 'largo_total_superior'
                 ],
                 "enagua" => [
                     'id_cliente','articulo', 'talla', 'fecha', 'observaciones', 'sastre', 'largo_inferior', 'cintura_inferior', 'cadera_inferior', 'altura_cadera_inferior'
+                ],
+                "pantalon" => ['id_cliente','articulo', 'talla','fecha', 'observaciones', 'sastre',
+                    'largo_inferior', 'cintura_inferior', 'cadera_inferior',
+                    'altura_cadera_inferior', 'pierna_inferior', 'rodilla_inferior',
+                    'altura_rodilla_inferior', 'ruedo_inferior', 'tiro_inferior', 'contorno_tiro_inferior', 'tiro_largo_ya_inferior', 'largo_total_superior', 'largo_entrepierna_inferior'
                 ]
             ];
 
-            $superior = ["camisa", "gabacha", "camiseta", "jacket", "chaleco", "gabacha medica", "filipinas"];
-            $inferior = ["short", "pantalon"];
+            $superior = ["camisa", "gabacha", "camiseta", "jacket", "chaleco", "gabacha medica", "filipinas", 'vestido'];
+            $inferior = ["short"];
 
             if (in_array($prenda, $superior)) {
                 $tipoPrenda = "superior";
