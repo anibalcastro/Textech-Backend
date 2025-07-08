@@ -48,7 +48,8 @@ class MedicionesResource extends JsonResource
             'ancho_pecho_superior' => $this->ancho_pecho_superior,
             'boca_manga_superior' => $this->boca_manga_superior,
             'contorno_cuello_superior' => $this->contorno_cuello_superior,
-            'escote_superior' => $this->escote_superior
+            'escote_superior' => $this->escote_superior,
+            'largo_costado_superior' => $this->largo_costado_superior,
         ];
     }
 }
