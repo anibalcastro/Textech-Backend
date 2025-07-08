@@ -237,10 +237,10 @@ class MedicionesController extends Controller
                 ],
                 "inferior" => ['id_cliente','articulo', 'talla','fecha', 'observaciones', 'sastre',
                     'largo_inferior', 'cintura_inferior', 'cadera_inferior',
-                    'altura_cadera_inferior', 'pierna_inferior', 'ruedo_inferior', 'tiro_inferior', 'contorno_tiro_inferior', 'tiro_largo_ya_inferior', 'largo_total_superior'
+                    'altura_cadera_inferior', 'pierna_inferior', 'ruedo_inferior', 'tiro_inferior', 'contorno_tiro_inferior', 'tiro_largo_ya_inferior', 'largo_total_superior', 'largo_entrepierna_inferior'
                 ],
                 "enagua" => [
-                    'id_cliente','articulo', 'talla', 'fecha', 'observaciones', 'sastre', 'largo_inferior', 'cintura_inferior', 'cadera_inferior', 'altura_cadera_inferior'
+                    'id_cliente','articulo', 'talla', 'fecha', 'observaciones', 'sastre', 'largo_inferior', 'cintura_inferior', 'cadera_inferior', 'altura_cadera_inferior', 'separacion_busto_superior'
                 ],
                 "pantalon" => ['id_cliente','articulo', 'talla','fecha', 'observaciones', 'sastre',
                     'largo_inferior', 'cintura_inferior', 'cadera_inferior',
@@ -464,6 +464,13 @@ class MedicionesController extends Controller
             'altura_cadera_inferior' => 'nullable',
             'altura_rodilla_inferior' => 'nullable',
             'contorno_tiro_inferior' => 'nullable',
+            'largo_entrepierna_inferior' => 'nullable',
+            'alto_cadera_superior' => 'nullable',
+            'ancho_pecho_superior' => 'nullable',
+            'boca_mango_superior' => 'nullable',
+            'largo_costado_superior' => 'nullable',
+            'contorno_cuello_superior' => 'nullable',
+            'escote_superior' => 'nullable',
         ];
 
         //Mensajes
